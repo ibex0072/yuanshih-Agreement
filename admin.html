@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>源石學館｜合約管理系統</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;600&display=swap');
+:root{--ink:#1a1a2e;--paper:#faf8f3;--cream:#f0ece0;--red:#8b1a1a;--gold:#b8963e;--line:#d4cfc4;--green:#2d6a4f}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;background:#ddd8cc;min-height:100vh;padding:28px 16px 60px;color:var(--ink)}
+.top-bar{max-width:860px;margin:0 auto 20px;display:flex;align-items:center;justify-content:space-between}
+.school-name{font-family:'Noto Serif TC',serif;font-size:16px;letter-spacing:3px;color:var(--ink)}
+.school-sub{font-size:10px;color:#999;letter-spacing:2px;margin-top:2px}
+.badge{background:var(--red);color:white;font-size:10px;letter-spacing:2px;padding:4px 10px;border-radius:2px}
+.card{max-width:860px;margin:0 auto;background:var(--paper);box-shadow:0 4px 32px rgba(0,0,0,.14),0 0 0 1px var(--line)}
+.card-header{padding:24px 36px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px}
+.card-header .icon{width:40px;height:40px;border-radius:50%;background:var(--cream);border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:18px}
+.card-header h2{font-family:'Noto Serif TC',serif;font-size:16px;letter-spacing:2px}
+.card-header p{font-size:11px;color:#888;margin-top:3px}
+.card-body{padding:28px 36px}
+.section{margin-bottom:22px}
+.section-title{font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';display:block;width:3px;height:12px;background:var(--gold);border-radius:1px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid.three{grid-template-columns:1fr 1fr 1fr}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+.field label{font-size:10px;color:#888;letter-spacing:1px}
+.field label span{color:var(--red);margin-left:2px}
+.field input,.field select,.field textarea{
+  border:1px solid var(--line);
+  background:white;
+  font-family:'Noto Sans TC',sans-serif;
+  font-size:13px;color:var(--ink);
+  padding:8px 10px;outline:none;
+  transition:border-color .2s;
+  border-radius:2px;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold)}
+.field textarea{resize:vertical;min-height:60px}
+.generate-btn{
+  display:block;width:100%;padding:14px;
+  background:var(--ink);color:white;
+  border:none;font-family:'Noto Sans TC',sans-serif;
+  font-size:13px;letter-spacing:5px;cursor:pointer;
+  transition:background .2s;border-radius:2px;margin-top:8px;
+}
+.generate-btn:hover{background:var(--red)}
+/* Link output */
+.link-box{display:none;margin-top:20px;border:1.5px solid var(--gold);background:#fffbf0;padding:18px 20px;border-radius:2px}
+.link-box .link-title{font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.link-url{font-size:12px;color:var(--ink);background:white;border:1px solid var(--line);padding:9px 12px;border-radius:2px;word-break:break-all;margin-bottom:10px;line-height:1.7}
+.link-actions{display:flex;gap:8px}
+.btn-sm{padding:7px 16px;font-family:'Noto Sans TC',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;border-radius:2px;border:1.5px solid var(--line);background:white;transition:all .2s}
+.btn-sm:hover{border-color:var(--gold);color:var(--gold)}
+.btn-sm.primary{background:var(--gold);color:white;border-color:var(--gold)}
+.btn-sm.primary:hover{background:#9a7a30}
+/* History */
+.history-empty{text-align:center;padding:28px;color:#bbb;font-size:12px}
+.contract-row{border:1px solid var(--line);padding:12px 16px;margin-bottom:8px;background:white;border-radius:2px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .2s}
+.contract-row:hover{border-color:var(--gold)}
+.row-info{flex:1}
+.row-name{font-size:13px;font-weight:500}
+.row-meta{font-size:11px;color:#999;margin-top:2px}
+.row-status{font-size:10px;padding:3px 8px;border-radius:10px;letter-spacing:1px}
+.status-pending{background:#fff3e0;color:#b8700a}
+.status-signed{background:#e8f5e9;color:#2e7d32}
+.divider-line{border:none;border-top:1px solid var(--line);margin:20px 0}
+@media(max-width:600px){.card-body{padding:20px 18px}.grid,.grid.three{grid-template-columns:1fr}.link-actions{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <div>
+    <div class="school-name">源石學館</div>
+    <div class="school-sub">文理語文短期補習班</div>
+  </div>
+  <div class="badge">管理端</div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="icon">📝</div>
+    <div>
+      <h2>新增服務契約書</h2>
+      <p>填寫學生與課程資料，系統將產生專屬連結供家長簽署</p>
+    </div>
+  </div>
+  <div class="card-body">
+    <!-- Student -->
+    <div class="section">
+      <div class="section-title">甲方（學生）資料</div>
+      <div class="grid">
+        <div class="field"><label>學生姓名 <span>*</span></label><input id="studentName" placeholder="請填寫"></div>
+        <div class="field"><label>聯絡電話 <span>*</span></label><input id="studentPhone" type="tel" placeholder="請填寫"></div>
+        <div class="field full"><label>地址</label><input id="studentAddr" value="台北市南京東路四段133巷7弄36號"></div>
+      </div>
+    </div>
+    <!-- Parent -->
+    <div class="section">
+      <div class="section-title">法定代理人（家長）資料</div>
+      <div class="grid">
+        <div class="field"><label>代理人姓名 <span>*</span></label><input id="parentName" placeholder="請填寫"></div>
+        <div class="field"><label>代理人電話 <span>*</span></label><input id="parentPhone" type="tel" placeholder="請填寫"></div>
+      </div>
+    </div>
+    <!-- Course -->
+    <div class="section">
+      <div class="section-title">課程資料</div>
+      <div class="grid three">
+        <div class="field"><label>課程科目 <span>*</span></label><input id="subject" placeholder="例：英文"></div>
+        <div class="field"><label>每週授課時數</label><input id="hours" placeholder="例：14 小時"></div>
+        <div class="field"><label>開課日期 <span>*</span></label><input id="startDate" type="date" value="2025-11-05"></div>
+        <div class="field full"><label>任課師資</label><input id="teacher" placeholder="請填寫教師姓名"></div>
+      </div>
+    </div>
+    <!-- Fee -->
+    <div class="section">
+      <div class="section-title">費用資料</div>
+      <div class="grid">
+        <div class="field"><label>學費（新臺幣元）<span>*</span></label><input id="feeTuition" type="number" placeholder="例：10000"></div>
+        <div class="field"><label>教材費（新臺幣元）</label><input id="feeMaterial" type="number" placeholder="例：500"></div>
+        <div class="field"><label>其他費用（新臺幣元）</label><input id="feeOther" type="number" placeholder="例：0"></div>
+        <div class="field"><label>繳費方式</label>
+          <select id="payMethod">
+            <option value="一次付清">一次付清</option>
+            <option value="分兩期繳納">分兩期繳納</option>
+            <option value="按月繳納">按月繳納</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <button class="generate-btn" onclick="generateLink()">產生家長簽署連結</button>
+
+    <div class="link-box" id="linkBox">
+      <div class="link-title">🔗 家長簽署連結（請複製並傳送給家長）</div>
+      <div class="link-url" id="linkUrl"></div>
+      <div class="link-actions">
+        <button class="btn-sm primary" onclick="copyLink()">複製連結</button>
+        <button class="btn-sm" onclick="openLink()">預覽頁面</button>
+        <button class="btn-sm" onclick="resetForm()">新增下一筆</button>
+      </div>
+    </div>
+
+    <hr class="divider-line">
+
+    <!-- History -->
+    <div class="section-title">已產生的合約記錄</div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<script>
+function generateLink(){
+  const req=['studentName','studentPhone','parentName','parentPhone','subject','startDate','feeTuition'];
+  for(const id of req){
+    if(!document.getElementById(id).value.trim()){
+      alert('請填寫必填欄位（標有 * 號）');
+      document.getElementById(id).focus();
+      return;
+    }
+  }
+  const t=document.getElementById('feeTuition').value;
+  const m=document.getElementById('feeMaterial').value||'0';
+  const o=document.getElementById('feeOther').value||'0';
+  const total=parseInt(t||0)+parseInt(m||0)+parseInt(o||0);
+
+  const data={
+    studentName:document.getElementById('studentName').value.trim(),
+    studentPhone:document.getElementById('studentPhone').value.trim(),
+    studentAddr:document.getElementById('studentAddr').value.trim(),
+    parentName:document.getElementById('parentName').value.trim(),
+    parentPhone:document.getElementById('parentPhone').value.trim(),
+    subject:document.getElementById('subject').value.trim(),
+    hours:document.getElementById('hours').value.trim(),
+    startDate:document.getElementById('startDate').value,
+    teacher:document.getElementById('teacher').value.trim(),
+    feeTuition:t,
+    feeMaterial:m,
+    feeOther:o,
+    totalFee:total,
+    payMethod:document.getElementById('payMethod').value,
+    createdAt:new Date().toISOString(),
+    id:'c'+Date.now()
+  };
+
+  const encoded=btoa(encodeURIComponent(JSON.stringify(data)));
+  const url=`${location.origin}/contract.html?d=${encoded}`;
+
+  document.getElementById('linkUrl').textContent=url;
+  document.getElementById('linkBox').style.display='block';
+  document.getElementById('linkBox').scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  // Save to history
+  const history=JSON.parse(localStorage.getItem('contracts')||'[]');
+  history.unshift({...data,url,status:'pending'});
+  localStorage.setItem('contracts',JSON.stringify(history));
+  renderHistory();
+}
+
+function copyLink(){
+  navigator.clipboard.writeText(document.getElementById('linkUrl').textContent).then(()=>{
+    const btn=event.target;btn.textContent='已複製！';setTimeout(()=>btn.textContent='複製連結',2000);
+  });
+}
+function openLink(){window.open(document.getElementById('linkUrl').textContent,'_blank');}
+function resetForm(){
+  ['studentName','studentPhone','parentName','parentPhone','subject','hours','teacher','feeTuition','feeMaterial','feeOther'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('linkBox').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderHistory(){
+  const history=JSON.parse(localStorage.getItem('contracts')||'[]');
+  const el=document.getElementById('historyList');
+  if(!history.length){el.innerHTML='<div class="history-empty">尚無合約記錄</div>';return;}
+  el.innerHTML=history.slice(0,20).map(c=>`
+    <div class="contract-row" onclick="window.open('${c.url}','_blank')">
+      <div class="row-info">
+        <div class="row-name">${c.studentName} ／ ${c.subject}</div>
+        <div class="row-meta">家長：${c.parentName}｜開課：${c.startDate}｜金額：NT$ ${c.totalFee.toLocaleString()}</div>
+      </div>
+      <span class="row-status ${c.status==='signed'?'status-signed':'status-pending'}">${c.status==='signed'?'已簽署':'待簽署'}</span>
+    </div>`).join('');
+}
+renderHistory();
+</script>
+</body>
+</html>
