@@ -258,7 +258,7 @@ function resetForm(){
 async function loadContracts(){
   document.getElementById('historyList').innerHTML='<div class="history-empty">載入中…</div>';
   const{data,error}=await sb.from('contracts').select('*').order('created_at',{ascending:false});
-  if(error){document.getElementById('historyList').innerHTML='<div class="history-empty">載入失敗，請重新整理</div>';return;}
+  if(error){document.getElementById("historyList").innerHTML=`<div class="history-empty">載入失敗：${error.message}</div>`;console.error(error);return;}
   allContracts=data||[];
   renderContracts(allContracts);
   updateStats(allContracts);
