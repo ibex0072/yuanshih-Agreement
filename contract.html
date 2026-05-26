@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源石學館｜服務契約書簽署</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<!-- No SDK needed -->
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;600&display=swap');
 :root{--ink:#1a1a2e;--paper:#faf8f3;--cream:#f0ece0;--red:#8b1a1a;--gold:#b8963e;--line:#d4cfc4}
@@ -280,9 +280,7 @@ canvas#sigCanvas{display:block;width:100%;height:200px;background:white;cursor:c
 </div>
 
 <script>
-const SUPABASE_URL='https://sxkougqqpqvrhtggtnkn.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4dWtvdWdxcHF2cmh0Z2d0bmtuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzY4NDUsImV4cCI6MjA5NTM1Mjg0NX0.5zzD1V2Pc1CFifV6Q1Jj9SEanMrtNy1PUinsUFs0_cs';
-// Using REST API directly
+const API_URL='https://script.google.com/macros/s/AKfycbxr_5tj46KOkksLPy-MTStsg0W0gfUeySjIsWRzq9bcLuoCZ3nYowXqOyEUxZdLpGaj0g/exec';
 
 let D=null,contractId=null;
 try{
@@ -301,11 +299,9 @@ if(!D){
 
 async function checkAlreadySigned(){
   if(!contractId)return;
-  const res=await fetch(`${SUPABASE_URL}/rest/v1/contracts?id=eq.${contractId}&select=status,signed_at`,{
-    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Accept':'application/json'}
-  });
-  const rows=await res.json();
-  const data=Array.isArray(rows)?rows[0]:null;
+  const res=await fetch(`${API_URL}?action=get&id=${contractId}`);
+  const j=await res.json();
+  const data=j.ok?j.data:null;
   if(data&&data.status==='signed'){
     document.getElementById('mainWrap').innerHTML=`<div class="error-state"><div class="icon">✅</div><h3>此合約已完成簽署</h3><p>簽署時間：${new Date(data.signed_at).toLocaleString('zh-TW')}<br>如需補印 PDF，請聯絡源石學館。<br><br>電話：02-2713-8159</p></div>`;
   }
@@ -550,21 +546,14 @@ async function submitContract(){
     const timer=setTimeout(()=>controller.abort(),10000);
 
     let savedId=contractId;
-    if(contractId){
-      await fetch(`${SUPABASE_URL}/rest/v1/contracts?id=eq.${contractId}`,{
-        method:'PATCH',signal:controller.signal,
-        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-        body:JSON.stringify(payload)
-      });
-    }else{
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/contracts`,{
-        method:'POST',signal:controller.signal,
-        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-        body:JSON.stringify(payload)
-      });
-      const rows=await res.json();
-      if(Array.isArray(rows)&&rows[0]) savedId=rows[0].id;
-    }
+    const saveRes=await fetch(API_URL,{
+      method:'POST',signal:controller.signal,
+      body:JSON.stringify(contractId
+        ?{action:'update',id:contractId,data:payload}
+        :{action:'insert',data:payload})
+    });
+    const saveJ=await saveRes.json();
+    if(saveJ.ok&&saveJ.data&&saveJ.data.id) savedId=saveJ.data.id;
     clearTimeout(timer);
   }catch(err){
     console.warn('Save warning (showing success anyway):',err);
