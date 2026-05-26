@@ -216,9 +216,13 @@ const sb={
 
 async function _rest(method,table,params={}){
   try{
-    const q=Object.entries(params).map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join('&');
+    // Don't encode order/select - Supabase needs raw dot notation (e.g. created_at.desc)
+    const q=Object.entries(params).map(([k,v])=>{
+      if(k==='order'||k==='select'||k==='limit') return `${k}=${v}`;
+      return `${k}=${encodeURIComponent(v)}`;
+    }).join('&');
     const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}?${q}`,{
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Accept':'application/json'}
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Accept':'application/json','Content-Type':'application/json'}
     });
     if(!res.ok){const e=await res.text();return{data:null,error:{message:e}};}
     const data=await res.json();
@@ -324,7 +328,12 @@ async function loadContracts(){
   document.getElementById('historyList').innerHTML='<div class="history-empty">載入中…</div>';
   try{
     const res=await fetch(`${SUPABASE_URL}/rest/v1/contracts?select=*&order=created_at.desc`,{
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Accept':'application/json'}
+      headers:{
+        'apikey':SUPABASE_KEY,
+        'Authorization':'Bearer '+SUPABASE_KEY,
+        'Accept':'application/json',
+        'Content-Type':'application/json'
+      }
     });
     if(!res.ok){const t=await res.text();throw new Error(`HTTP ${res.status}: ${t}`);}
     allContracts=await res.json();
