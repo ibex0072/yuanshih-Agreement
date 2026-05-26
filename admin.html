@@ -4,22 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源石學館｜合約管理系統</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;600&display=swap');
 :root{--ink:#1a1a2e;--paper:#faf8f3;--cream:#f0ece0;--red:#8b1a1a;--gold:#b8963e;--line:#d4cfc4;--green:#2d6a4f}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans TC',sans-serif;background:#ddd8cc;min-height:100vh;padding:28px 16px 60px;color:var(--ink)}
-.top-bar{max-width:860px;margin:0 auto 20px;display:flex;align-items:center;justify-content:space-between}
-.school-name{font-family:'Noto Serif TC',serif;font-size:16px;letter-spacing:3px;color:var(--ink)}
+.top-bar{max-width:900px;margin:0 auto 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.school-name{font-family:'Noto Serif TC',serif;font-size:16px;letter-spacing:3px}
 .school-sub{font-size:10px;color:#999;letter-spacing:2px;margin-top:2px}
-.badge{background:var(--red);color:white;font-size:10px;letter-spacing:2px;padding:4px 10px;border-radius:2px}
-.card{max-width:860px;margin:0 auto;background:var(--paper);box-shadow:0 4px 32px rgba(0,0,0,.14),0 0 0 1px var(--line)}
-.card-header{padding:24px 36px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px}
-.card-header .icon{width:40px;height:40px;border-radius:50%;background:var(--cream);border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:18px}
-.card-header h2{font-family:'Noto Serif TC',serif;font-size:16px;letter-spacing:2px}
-.card-header p{font-size:11px;color:#888;margin-top:3px}
-.card-body{padding:28px 36px}
-.section{margin-bottom:22px}
+.badge{background:var(--red);color:white;font-size:10px;letter-spacing:2px;padding:4px 12px;border-radius:2px}
+.tabs{display:flex;gap:0;max-width:900px;margin:0 auto 0}
+.tab{padding:11px 28px;font-family:'Noto Sans TC',sans-serif;font-size:12px;letter-spacing:2px;cursor:pointer;background:var(--cream);border:1px solid var(--line);border-bottom:none;color:#888;transition:all .2s}
+.tab.active{background:var(--paper);color:var(--ink);font-weight:600;border-bottom:none}
+.card{max-width:900px;margin:0 auto;background:var(--paper);box-shadow:0 4px 32px rgba(0,0,0,.14),0 0 0 1px var(--line)}
+.tab-content{display:none;padding:28px 36px}
+.tab-content.active{display:block}
 .section-title{font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px}
 .section-title::before{content:'';display:block;width:3px;height:12px;background:var(--gold);border-radius:1px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -28,86 +28,113 @@ body{font-family:'Noto Sans TC',sans-serif;background:#ddd8cc;min-height:100vh;p
 .field.full{grid-column:1/-1}
 .field label{font-size:10px;color:#888;letter-spacing:1px}
 .field label span{color:var(--red);margin-left:2px}
-.field input,.field select,.field textarea{
-  border:1px solid var(--line);
-  background:white;
-  font-family:'Noto Sans TC',sans-serif;
-  font-size:13px;color:var(--ink);
-  padding:8px 10px;outline:none;
-  transition:border-color .2s;
-  border-radius:2px;
-}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold)}
-.field textarea{resize:vertical;min-height:60px}
-.generate-btn{
-  display:block;width:100%;padding:14px;
-  background:var(--ink);color:white;
-  border:none;font-family:'Noto Sans TC',sans-serif;
-  font-size:13px;letter-spacing:5px;cursor:pointer;
-  transition:background .2s;border-radius:2px;margin-top:8px;
-}
+.field input,.field select{border:1px solid var(--line);background:white;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--ink);padding:8px 10px;outline:none;transition:border-color .2s;border-radius:2px}
+.field input:focus,.field select:focus{border-color:var(--gold)}
+.section{margin-bottom:22px}
+.info-section{background:var(--cream);border:1px solid var(--line);padding:14px 18px;margin-bottom:16px;border-radius:2px}
+.info-section h4{font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.generate-btn{display:block;width:100%;padding:13px;background:var(--ink);color:white;border:none;font-family:'Noto Sans TC',sans-serif;font-size:12px;letter-spacing:5px;cursor:pointer;transition:background .2s;border-radius:2px;margin-top:8px}
 .generate-btn:hover{background:var(--red)}
-/* Link output */
-.link-box{display:none;margin-top:20px;border:1.5px solid var(--gold);background:#fffbf0;padding:18px 20px;border-radius:2px}
-.link-box .link-title{font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.link-url{font-size:12px;color:var(--ink);background:white;border:1px solid var(--line);padding:9px 12px;border-radius:2px;word-break:break-all;margin-bottom:10px;line-height:1.7}
-.link-actions{display:flex;gap:8px}
+.link-box{display:none;margin-top:18px;border:1.5px solid var(--gold);background:#fffbf0;padding:16px 18px;border-radius:2px}
+.link-title{font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:10px}
+.link-url{font-size:11.5px;color:var(--ink);background:white;border:1px solid var(--line);padding:9px 12px;border-radius:2px;word-break:break-all;margin-bottom:10px;line-height:1.7}
+.link-actions{display:flex;gap:8px;flex-wrap:wrap}
 .btn-sm{padding:7px 16px;font-family:'Noto Sans TC',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;border-radius:2px;border:1.5px solid var(--line);background:white;transition:all .2s}
 .btn-sm:hover{border-color:var(--gold);color:var(--gold)}
 .btn-sm.primary{background:var(--gold);color:white;border-color:var(--gold)}
 .btn-sm.primary:hover{background:#9a7a30}
-/* History */
-.history-empty{text-align:center;padding:28px;color:#bbb;font-size:12px}
-.contract-row{border:1px solid var(--line);padding:12px 16px;margin-bottom:8px;background:white;border-radius:2px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .2s}
-.contract-row:hover{border-color:var(--gold)}
+/* History list */
+.filter-bar{display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+.filter-bar input{flex:1;min-width:160px;border:1px solid var(--line);background:white;font-family:'Noto Sans TC',sans-serif;font-size:12px;padding:7px 10px;border-radius:2px;outline:none}
+.filter-bar input:focus{border-color:var(--gold)}
+.refresh-btn{padding:7px 16px;font-family:'Noto Sans TC',sans-serif;font-size:11px;letter-spacing:1px;cursor:pointer;border-radius:2px;border:1.5px solid var(--line);background:white}
+.refresh-btn:hover{border-color:var(--ink)}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat-box{background:var(--cream);padding:12px 16px;border-radius:2px;text-align:center;border-left:3px solid var(--line)}
+.stat-box.signed{border-left-color:var(--green)}
+.stat-box.pending{border-left-color:var(--gold)}
+.stat-num{font-size:22px;font-weight:700;color:var(--ink)}
+.stat-label{font-size:10px;color:#999;letter-spacing:1px;margin-top:2px}
+.contract-row{border:1px solid var(--line);padding:0;margin-bottom:8px;background:white;border-radius:2px;overflow:hidden;transition:box-shadow .2s}
+.contract-row:hover{box-shadow:0 2px 12px rgba(0,0,0,.1)}
+.row-main{display:flex;align-items:center;gap:14px;padding:12px 16px;cursor:pointer}
 .row-info{flex:1}
-.row-name{font-size:13px;font-weight:500}
+.row-name{font-size:13.5px;font-weight:600}
 .row-meta{font-size:11px;color:#999;margin-top:2px}
-.row-status{font-size:10px;padding:3px 8px;border-radius:10px;letter-spacing:1px}
+.row-status{font-size:10px;padding:3px 9px;border-radius:10px;letter-spacing:1px;flex-shrink:0}
 .status-pending{background:#fff3e0;color:#b8700a}
 .status-signed{background:#e8f5e9;color:#2e7d32}
-.divider-line{border:none;border-top:1px solid var(--line);margin:20px 0}
-@media(max-width:600px){.card-body{padding:20px 18px}.grid,.grid.three{grid-template-columns:1fr}.link-actions{flex-direction:column}}
+.row-expand{display:none;border-top:1px solid var(--line);padding:14px 16px;background:#fafaf8}
+.row-expand.open{display:block}
+.expand-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.expand-item .k{font-size:9px;color:#aaa;letter-spacing:1px;margin-bottom:2px}
+.expand-item .v{font-size:12px;color:var(--ink)}
+.sig-thumb{max-height:60px;border:1px solid var(--line);background:white;padding:4px}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap}
+.history-empty{text-align:center;padding:36px;color:#bbb;font-size:12px}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--paper);max-width:680px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.3)}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--paper)}
+.modal-header h3{font-family:'Noto Serif TC',serif;font-size:16px;letter-spacing:2px}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:#999;padding:0 4px}
+.modal-body{padding:24px}
+/* Contract preview in modal */
+.preview-art{font-family:'Noto Serif TC',serif;font-size:12px;font-weight:700;margin:14px 0 5px;letter-spacing:2px;color:var(--ink)}
+.preview-art:first-child{margin-top:0}
+.preview-p{font-size:12px;line-height:1.9;margin-bottom:6px;text-align:justify;color:#333}
+.preview-ol{padding-left:18px;margin-bottom:6px;font-size:12px;line-height:1.9;color:#333}
+.preview-ol li{margin-bottom:3px}
+.preview-party{background:var(--cream);padding:8px 12px;margin-bottom:8px;font-size:11.5px;line-height:1.9}
+.preview-hl{background:#fff8e8;border-left:3px solid var(--gold);padding:8px 12px;margin:8px 0;font-size:11px;color:#7a5c10}
+.preview-dv{border:none;border-top:1px solid var(--line);margin:10px 0}
+.preview-amount{border-bottom:1px solid var(--ink);display:inline-block;min-width:60px;text-align:center;font-weight:600;color:var(--red)}
+.preview-sig-section{border:1.5px solid var(--line);padding:14px;margin-top:14px}
+.preview-sig-title{font-size:11px;letter-spacing:3px;text-align:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line);color:var(--ink)}
+.preview-sig-grid{display:flex;gap:16px;align-items:flex-start}
+.preview-sig-col{flex:1}
+.preview-sig-label{font-size:10px;color:#999;margin-bottom:4px}
+.preview-sig-img{max-height:70px;border:1px solid var(--line);background:white;padding:4px;display:block}
+.preview-seal{flex:0 0 100px;text-align:center}
+.seal-circle{width:80px;height:80px;border:2px solid var(--red);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto;color:var(--red);font-size:7px;line-height:1.6;letter-spacing:0.5px}
+.preview-footer{margin-top:12px;padding-top:8px;border-top:1px solid var(--line);font-size:10px;color:#aaa;text-align:center;line-height:1.9}
+@media(max-width:600px){.tab-content{padding:20px 16px}.grid,.grid.three,.expand-grid,.stats-row{grid-template-columns:1fr}.link-actions{flex-direction:column}}
 </style>
 </head>
 <body>
 <div class="top-bar">
-  <div>
-    <div class="school-name">源石學館</div>
-    <div class="school-sub">文理語文短期補習班</div>
-  </div>
+  <div><div class="school-name">源石學館</div><div class="school-sub">文理語文短期補習班　合約管理系統</div></div>
   <div class="badge">管理端</div>
 </div>
 
-<div class="card">
-  <div class="card-header">
-    <div class="icon">📝</div>
-    <div>
-      <h2>新增服務契約書</h2>
-      <p>填寫學生與課程資料，系統將產生專屬連結供家長簽署</p>
-    </div>
+<div style="max-width:900px;margin:0 auto">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('new')">＋ 新增合約</div>
+    <div class="tab" onclick="switchTab('history')" id="historyTab">📋 合約記錄</div>
   </div>
-  <div class="card-body">
-    <!-- Student -->
-    <div class="section">
-      <div class="section-title">甲方（學生）資料</div>
+</div>
+
+<div class="card">
+  <!-- Tab: New -->
+  <div class="tab-content active" id="tab-new">
+    <div class="info-section">
+      <h4>甲方（學生）資料</h4>
       <div class="grid">
         <div class="field"><label>學生姓名 <span>*</span></label><input id="studentName" placeholder="請填寫"></div>
         <div class="field"><label>聯絡電話 <span>*</span></label><input id="studentPhone" type="tel" placeholder="請填寫"></div>
         <div class="field full"><label>地址</label><input id="studentAddr" value="台北市南京東路四段133巷7弄36號"></div>
       </div>
     </div>
-    <!-- Parent -->
-    <div class="section">
-      <div class="section-title">法定代理人（家長）資料</div>
+    <div class="info-section">
+      <h4>法定代理人（家長）資料</h4>
       <div class="grid">
         <div class="field"><label>代理人姓名 <span>*</span></label><input id="parentName" placeholder="請填寫"></div>
         <div class="field"><label>代理人電話 <span>*</span></label><input id="parentPhone" type="tel" placeholder="請填寫"></div>
       </div>
     </div>
-    <!-- Course -->
-    <div class="section">
-      <div class="section-title">課程資料</div>
+    <div class="info-section">
+      <h4>課程資料</h4>
       <div class="grid three">
         <div class="field"><label>課程科目 <span>*</span></label><input id="subject" placeholder="例：英文"></div>
         <div class="field"><label>每週授課時數</label><input id="hours" placeholder="例：14 小時"></div>
@@ -115,25 +142,18 @@ body{font-family:'Noto Sans TC',sans-serif;background:#ddd8cc;min-height:100vh;p
         <div class="field full"><label>任課師資</label><input id="teacher" placeholder="請填寫教師姓名"></div>
       </div>
     </div>
-    <!-- Fee -->
-    <div class="section">
-      <div class="section-title">費用資料</div>
+    <div class="info-section">
+      <h4>費用資料</h4>
       <div class="grid">
-        <div class="field"><label>學費（新臺幣元）<span>*</span></label><input id="feeTuition" type="number" placeholder="例：10000"></div>
-        <div class="field"><label>教材費（新臺幣元）</label><input id="feeMaterial" type="number" placeholder="例：500"></div>
-        <div class="field"><label>其他費用（新臺幣元）</label><input id="feeOther" type="number" placeholder="例：0"></div>
+        <div class="field"><label>學費（元）<span>*</span></label><input id="feeTuition" type="number" placeholder="例：10000"></div>
+        <div class="field"><label>教材費（元）</label><input id="feeMaterial" type="number" placeholder="例：500"></div>
+        <div class="field"><label>其他費用（元）</label><input id="feeOther" type="number" placeholder="例：0"></div>
         <div class="field"><label>繳費方式</label>
-          <select id="payMethod">
-            <option value="一次付清">一次付清</option>
-            <option value="分兩期繳納">分兩期繳納</option>
-            <option value="按月繳納">按月繳納</option>
-          </select>
+          <select id="payMethod"><option value="一次付清">一次付清</option><option value="分兩期繳納">分兩期繳納</option><option value="按月繳納">按月繳納</option></select>
         </div>
       </div>
     </div>
-
     <button class="generate-btn" onclick="generateLink()">產生家長簽署連結</button>
-
     <div class="link-box" id="linkBox">
       <div class="link-title">🔗 家長簽署連結（請複製並傳送給家長）</div>
       <div class="link-url" id="linkUrl"></div>
@@ -143,30 +163,56 @@ body{font-family:'Noto Sans TC',sans-serif;background:#ddd8cc;min-height:100vh;p
         <button class="btn-sm" onclick="resetForm()">新增下一筆</button>
       </div>
     </div>
+  </div>
 
-    <hr class="divider-line">
-
-    <!-- History -->
-    <div class="section-title">已產生的合約記錄</div>
+  <!-- Tab: History -->
+  <div class="tab-content" id="tab-history">
+    <div class="stats-row" id="statsRow">
+      <div class="stat-box"><div class="stat-num" id="statTotal">-</div><div class="stat-label">合約總數</div></div>
+      <div class="stat-box signed"><div class="stat-num" id="statSigned">-</div><div class="stat-label">已簽署</div></div>
+      <div class="stat-box pending"><div class="stat-num" id="statPending">-</div><div class="stat-label">待簽署</div></div>
+    </div>
+    <div class="filter-bar">
+      <input id="searchInput" placeholder="搜尋學生姓名、課程…" oninput="filterContracts()">
+      <button class="refresh-btn" onclick="loadContracts()">↻ 重新整理</button>
+    </div>
     <div id="historyList"></div>
   </div>
 </div>
 
-<script>
-function generateLink(){
-  const req=['studentName','studentPhone','parentName','parentPhone','subject','startDate','feeTuition'];
-  for(const id of req){
-    if(!document.getElementById(id).value.trim()){
-      alert('請填寫必填欄位（標有 * 號）');
-      document.getElementById(id).focus();
-      return;
-    }
-  }
-  const t=document.getElementById('feeTuition').value;
-  const m=document.getElementById('feeMaterial').value||'0';
-  const o=document.getElementById('feeOther').value||'0';
-  const total=parseInt(t||0)+parseInt(m||0)+parseInt(o||0);
+<!-- Modal: Contract Preview -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">服務契約書</h3>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
 
+<script>
+const SUPABASE_URL='https://sxkougqqpqvrhtggtnkn.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4dWtvdWdxcHF2cmh0Z2d0bmtuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzY4NDUsImV4cCI6MjA5NTM1Mjg0NX0.5zzD1V2Pc1CFifV6Q1Jj9SEanMrtNy1PUinsUFs0_cs';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let allContracts=[];
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['new','history'][i]===t));
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  if(t==='history') loadContracts();
+}
+
+// ── Generate Link ──
+async function generateLink(){
+  const req=['studentName','studentPhone','parentName','parentPhone','subject','startDate','feeTuition'];
+  for(const id of req){if(!document.getElementById(id).value.trim()){alert('請填寫必填欄位（標有 * 號）');document.getElementById(id).focus();return;}}
+  const t=parseInt(document.getElementById('feeTuition').value)||0;
+  const m=parseInt(document.getElementById('feeMaterial').value)||0;
+  const o=parseInt(document.getElementById('feeOther').value)||0;
+  const total=t+m+o;
   const data={
     studentName:document.getElementById('studentName').value.trim(),
     studentPhone:document.getElementById('studentPhone').value.trim(),
@@ -177,34 +223,30 @@ function generateLink(){
     hours:document.getElementById('hours').value.trim(),
     startDate:document.getElementById('startDate').value,
     teacher:document.getElementById('teacher').value.trim(),
-    feeTuition:t,
-    feeMaterial:m,
-    feeOther:o,
-    totalFee:total,
+    feeTuition:String(t),feeMaterial:String(m),feeOther:String(o),totalFee:total,
     payMethod:document.getElementById('payMethod').value,
-    createdAt:new Date().toISOString(),
-    id:'c'+Date.now()
+    createdAt:new Date().toISOString()
   };
 
-  const encoded=btoa(encodeURIComponent(JSON.stringify(data)));
-  const url=`${location.origin}/contract.html?d=${encoded}`;
+  // Pre-create record in Supabase
+  const{data:row,error}=await sb.from('contracts').insert({
+    student_name:data.studentName,student_phone:data.studentPhone,student_addr:data.studentAddr,
+    parent_name:data.parentName,parent_phone:data.parentPhone,
+    subject:data.subject,hours:data.hours,start_date:data.startDate,teacher:data.teacher,
+    fee_tuition:data.feeTuition,fee_material:data.feeMaterial,fee_other:data.feeOther,
+    total_fee:total,pay_method:data.payMethod,
+    status:'pending',contract_data:JSON.stringify(data)
+  }).select('id').single();
 
+  const encoded=btoa(encodeURIComponent(JSON.stringify(data)));
+  const cid=row?row.id:'';
+  const url=`${location.origin}/contract.html?d=${encoded}&cid=${cid}`;
   document.getElementById('linkUrl').textContent=url;
   document.getElementById('linkBox').style.display='block';
   document.getElementById('linkBox').scrollIntoView({behavior:'smooth',block:'nearest'});
-
-  // Save to history
-  const history=JSON.parse(localStorage.getItem('contracts')||'[]');
-  history.unshift({...data,url,status:'pending'});
-  localStorage.setItem('contracts',JSON.stringify(history));
-  renderHistory();
 }
 
-function copyLink(){
-  navigator.clipboard.writeText(document.getElementById('linkUrl').textContent).then(()=>{
-    const btn=event.target;btn.textContent='已複製！';setTimeout(()=>btn.textContent='複製連結',2000);
-  });
-}
+function copyLink(){navigator.clipboard.writeText(document.getElementById('linkUrl').textContent).then(()=>{const b=event.target;b.textContent='已複製！';setTimeout(()=>b.textContent='複製連結',2000);});}
 function openLink(){window.open(document.getElementById('linkUrl').textContent,'_blank');}
 function resetForm(){
   ['studentName','studentPhone','parentName','parentPhone','subject','hours','teacher','feeTuition','feeMaterial','feeOther'].forEach(id=>document.getElementById(id).value='');
@@ -212,20 +254,169 @@ function resetForm(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function renderHistory(){
-  const history=JSON.parse(localStorage.getItem('contracts')||'[]');
-  const el=document.getElementById('historyList');
-  if(!history.length){el.innerHTML='<div class="history-empty">尚無合約記錄</div>';return;}
-  el.innerHTML=history.slice(0,20).map(c=>`
-    <div class="contract-row" onclick="window.open('${c.url}','_blank')">
-      <div class="row-info">
-        <div class="row-name">${c.studentName} ／ ${c.subject}</div>
-        <div class="row-meta">家長：${c.parentName}｜開課：${c.startDate}｜金額：NT$ ${c.totalFee.toLocaleString()}</div>
-      </div>
-      <span class="row-status ${c.status==='signed'?'status-signed':'status-pending'}">${c.status==='signed'?'已簽署':'待簽署'}</span>
-    </div>`).join('');
+// ── Load Contracts ──
+async function loadContracts(){
+  document.getElementById('historyList').innerHTML='<div class="history-empty">載入中…</div>';
+  const{data,error}=await sb.from('contracts').select('*').order('created_at',{ascending:false});
+  if(error){document.getElementById('historyList').innerHTML='<div class="history-empty">載入失敗，請重新整理</div>';return;}
+  allContracts=data||[];
+  renderContracts(allContracts);
+  updateStats(allContracts);
 }
-renderHistory();
+
+function updateStats(list){
+  document.getElementById('statTotal').textContent=list.length;
+  document.getElementById('statSigned').textContent=list.filter(c=>c.status==='signed').length;
+  document.getElementById('statPending').textContent=list.filter(c=>c.status==='pending').length;
+}
+
+function filterContracts(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  if(!q){renderContracts(allContracts);return;}
+  renderContracts(allContracts.filter(c=>(c.student_name||'').toLowerCase().includes(q)||(c.subject||'').toLowerCase().includes(q)||(c.parent_name||'').toLowerCase().includes(q)));
+}
+
+function fmtDate(s){return s?s.replace(/-/g,'/'):'—';}
+function fmtN(n){return n?parseInt(n).toLocaleString():'0';}
+
+function renderContracts(list){
+  const el=document.getElementById('historyList');
+  if(!list.length){el.innerHTML='<div class="history-empty">尚無合約記錄</div>';return;}
+  el.innerHTML=list.map(c=>{
+    const signed=c.status==='signed';
+    const D=c.contract_data?JSON.parse(c.contract_data):{};
+    const encoded=btoa(encodeURIComponent(JSON.stringify(D)));
+    const url=`${location.origin}/contract.html?d=${encoded}&cid=${c.id}`;
+    const signedTime=c.signed_at?new Date(c.signed_at).toLocaleString('zh-TW'):'—';
+    return `<div class="contract-row" id="row-${c.id}">
+      <div class="row-main" onclick="toggleRow('${c.id}')">
+        <div class="row-info">
+          <div class="row-name">${c.student_name||'—'} ／ ${c.subject||'—'}</div>
+          <div class="row-meta">家長：${c.parent_name||'—'}　｜　開課：${fmtDate(c.start_date)}　｜　NT$ ${fmtN(c.total_fee)}　｜　建立：${new Date(c.created_at).toLocaleDateString('zh-TW')}</div>
+        </div>
+        <span class="row-status ${signed?'status-signed':'status-pending'}">${signed?'✅ 已簽署':'⏳ 待簽署'}</span>
+      </div>
+      <div class="row-expand" id="expand-${c.id}">
+        <div class="expand-grid">
+          <div class="expand-item"><div class="k">學生電話</div><div class="v">${c.student_phone||'—'}</div></div>
+          <div class="expand-item"><div class="k">師資</div><div class="v">${c.teacher||'—'}</div></div>
+          <div class="expand-item"><div class="k">每週時數</div><div class="v">${c.hours||'—'}</div></div>
+          <div class="expand-item"><div class="k">繳費方式</div><div class="v">${c.pay_method||'—'}</div></div>
+          <div class="expand-item"><div class="k">簽署時間</div><div class="v">${signedTime}</div></div>
+          ${signed&&c.signature_url?`<div class="expand-item"><div class="k">家長簽名</div><img class="sig-thumb" src="${c.signature_url}" alt="簽名"></div>`:''}
+        </div>
+        <div class="row-actions">
+          <button class="btn-sm primary" onclick="viewContract('${c.id}')">👁 查看完整合約</button>
+          <button class="btn-sm" onclick="copyUrl('${url}')">複製連結</button>
+          ${signed?`<button class="btn-sm" onclick="downloadPDF('${c.id}')">⬇ 下載 PDF</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleRow(id){
+  const el=document.getElementById('expand-'+id);
+  el.classList.toggle('open');
+}
+
+function copyUrl(url){navigator.clipboard.writeText(url).then(()=>alert('連結已複製！'));}
+
+// ── View Contract Modal ──
+function viewContract(id){
+  const c=allContracts.find(x=>x.id===id);
+  if(!c)return;
+  const D=c.contract_data?JSON.parse(c.contract_data):{};
+  const signed=c.status==='signed';
+  const signedTime=c.signed_at?new Date(c.signed_at).toLocaleString('zh-TW'):'尚未簽署';
+  const total=parseInt(c.total_fee||0);
+  document.getElementById('modalTitle').textContent=`服務契約書　${c.student_name}`;
+  document.getElementById('modalBody').innerHTML=`
+    <div style="text-align:center;padding-bottom:14px;border-bottom:2px double var(--ink);margin-bottom:16px">
+      <div style="font-family:'Noto Serif TC',serif;font-size:12px;color:var(--red);letter-spacing:2px;margin-bottom:4px">台北市私立源石學館文理語文短期補習班</div>
+      <div style="font-family:'Noto Serif TC',serif;font-size:18px;letter-spacing:4px;margin-bottom:3px">服務契約書</div>
+      <div style="font-size:10px;color:#888">核准字號：7027　｜　負責人：陳柏汎</div>
+      <div style="margin-top:8px;display:inline-block;padding:3px 12px;border-radius:10px;font-size:11px;${signed?'background:#e8f5e9;color:#2e7d32':'background:#fff3e0;color:#b8700a'}">${signed?'✅ 已簽署　'+signedTime:'⏳ 待簽署'}</div>
+    </div>
+    <div class="preview-art">一、立約人</div>
+    <div class="preview-party">
+      甲方（學生）：<strong>${c.student_name||'—'}</strong>　電話：${c.student_phone||'—'}<br>
+      地址：${c.student_addr||'—'}<br>
+      法定代理人：<strong>${c.parent_name||'—'}</strong>　電話：${c.parent_phone||'—'}
+    </div>
+    <div class="preview-p" style="font-size:10.5px;color:#888">甲方為限制行為能力人時，須得法定代理人允許或承認，契約始為有效。</div>
+    <div class="preview-p"><strong>乙方：</strong>台北市私立源石學館文理語文短期補習班（核准字號7027）｜負責人：陳柏汎</div>
+    <div class="preview-dv"></div>
+    <div class="preview-art">二、契約審閱</div>
+    <div class="preview-hl">本契約於 2025-10-20 交付消費者審閱，審閱期間至少五日。</div>
+    <div class="preview-art">三～五、課程資訊</div>
+    <div class="preview-p">科目：<strong>${c.subject||'—'}</strong>　｜　每週時數：<strong>${c.hours||'—'}</strong>　｜　開課日：<strong>${fmtDate(c.start_date)}</strong></div>
+    <div class="preview-art">六、師資</div>
+    <div class="preview-p">任課教師：<strong>${c.teacher||'—'}</strong></div>
+    <div class="preview-art">七、上課地點</div>
+    <div class="preview-p">台北市南京東路四段133巷7弄36號</div>
+    <div class="preview-art">十二、請假規定</div>
+    <div class="preview-ol"><ol><li>請假應於前日 21:00 前告知。</li><li>每學期臨時請假以四次為限（病假需出示證明）。</li></ol></div>
+    <div class="preview-art">十三、收費手續</div>
+    <div class="preview-p">繳費總金額：NT$ <span class="preview-amount">${fmtN(total)}</span></div>
+    <div class="preview-p" style="font-size:11px;padding-left:10px">學費：NT$ ${fmtN(c.fee_tuition)}　教材費：NT$ ${fmtN(c.fee_material)}　其他：NT$ ${fmtN(c.fee_other)}</div>
+    <div class="preview-p">繳費方式：${c.pay_method||'—'}</div>
+    <div class="preview-dv"></div>
+    <div class="preview-art" style="color:var(--red)">附件：台北市補習班退費標準</div>
+    <div class="preview-ol"><ol>
+      <li>開課前第六十日前→退還 95%</li>
+      <li>開課前第五十九日至開課日前→退還 90%</li>
+      <li>開課當日後至第二次上課前→退還 70%</li>
+      <li>第二次上課後未達總時數 1/3→退還 50%</li>
+      <li>達總時數 1/3 以上→不予退還</li>
+    </ol></div>
+    <div class="preview-dv"></div>
+    <!-- 簽署區 -->
+    <div class="preview-sig-section">
+      <div class="preview-sig-title">立　約　人　簽　署</div>
+      <div class="preview-sig-grid">
+        <div class="preview-sig-col">
+          <div class="preview-sig-label">甲方（法定代理人）：${c.parent_name||'—'}</div>
+          <div style="font-size:11px;color:#888;margin-bottom:6px">學生：${c.student_name||'—'}</div>
+          ${signed&&c.signature_url
+            ?`<img class="preview-sig-img" src="${c.signature_url}" alt="法定代理人簽名">`
+            :`<div style="border:1px dashed #ccc;height:50px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#ccc">尚未簽署</div>`}
+        </div>
+        <div class="preview-seal">
+          <div class="preview-sig-label" style="text-align:center">乙方（補習班用章）</div>
+          <div class="seal-circle">
+            <div style="font-size:8px;font-weight:700">源石學館</div>
+            <div style="font-size:6px">文理語文短期補習班</div>
+            <div style="font-size:6px">負責人：陳柏汎</div>
+            <div style="font-size:5.5px;color:#c0392b;border:0.5px solid #c0392b;padding:1px 3px;margin-top:2px">大　章</div>
+          </div>
+          <div style="margin-top:10px;text-align:center;font-size:10px;color:#888">負責人簽章：<br><div style="border-bottom:1px solid #ccc;width:70px;margin:6px auto;height:20px"></div></div>
+        </div>
+      </div>
+      <div style="text-align:right;font-size:11px;color:#888;margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">
+        簽署日期：${signed&&c.signed_at?new Date(c.signed_at).toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'}):'_______________'}
+      </div>
+    </div>
+    <div class="preview-footer">台北市私立源石學館文理語文短期補習班　核准字號：7027　地址：台北市南京東路四段133巷7弄36號　電話：02-2713-8159</div>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(e){if(e.target===document.getElementById('modalOverlay'))closeModalDirect();}
+function closeModalDirect(){document.getElementById('modalOverlay').classList.remove('open');}
+
+// Download PDF from admin (reuses contract.html logic via new tab)
+function downloadPDF(id){
+  const c=allContracts.find(x=>x.id===id);
+  if(!c)return;
+  const D=c.contract_data?JSON.parse(c.contract_data):{};
+  const encoded=btoa(encodeURIComponent(JSON.stringify(D)));
+  window.open(`${location.origin}/contract.html?d=${encoded}&cid=${c.id}&action=pdf`,'_blank');
+}
+
+// Auto-refresh every 30s when on history tab
+setInterval(()=>{
+  if(document.getElementById('tab-history').classList.contains('active')) loadContracts();
+},30000);
 </script>
 </body>
 </html>
