@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源石學館｜合約管理系統</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;600&display=swap');
 :root{--ink:#1a1a2e;--paper:#faf8f3;--cream:#f0ece0;--red:#8b1a1a;--gold:#b8963e;--line:#d4cfc4;--green:#2d6a4f}
@@ -194,7 +194,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:#ddd8cc;min-height:100vh;p
 <script>
 const SUPABASE_URL='https://sxkougqqpqvrhtggtnkn.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4dWtvdWdxcHF2cmh0Z2d0bmtuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzY4NDUsImV4cCI6MjA5NTM1Mjg0NX0.5zzD1V2Pc1CFifV6Q1Jj9SEanMrtNy1PUinsUFs0_cs';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const sb=(window.supabase||supabase).createClient(SUPABASE_URL,SUPABASE_KEY);
 
 let allContracts=[];
 
@@ -229,17 +229,38 @@ async function generateLink(){
   };
 
   // Pre-create record in Supabase
-  const{data:row,error}=await sb.from('contracts').insert({
-    student_name:data.studentName,student_phone:data.studentPhone,student_addr:data.studentAddr,
-    parent_name:data.parentName,parent_phone:data.parentPhone,
-    subject:data.subject,hours:data.hours,start_date:data.startDate,teacher:data.teacher,
-    fee_tuition:data.feeTuition,fee_material:data.feeMaterial,fee_other:data.feeOther,
-    total_fee:total,pay_method:data.payMethod,
-    status:'pending',contract_data:JSON.stringify(data)
-  }).select('id').single();
+  let cid='';
+  try{
+    const payload={
+      student_name:data.studentName,student_phone:data.studentPhone,student_addr:data.studentAddr,
+      parent_name:data.parentName,parent_phone:data.parentPhone,
+      subject:data.subject,hours:data.hours,start_date:data.startDate,teacher:data.teacher,
+      fee_tuition:data.feeTuition,fee_material:data.feeMaterial,fee_other:data.feeOther,
+      total_fee:total,pay_method:data.payMethod,
+      status:'pending',contract_data:JSON.stringify(data)
+    };
+    // Try supabase client first
+    let row=null,error=null;
+    try{
+      const result=await sb.from('contracts').insert(payload).select('id').single();
+      row=result.data;error=result.error;
+    }catch(e){ error=e; }
+
+    if(error||!row){
+      // Fallback to direct REST
+      const res=await fetch(`${SUPABASE_URL}/rest/v1/contracts`,{
+        method:'POST',
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+        body:JSON.stringify(payload)
+      });
+      const rows=await res.json();
+      if(Array.isArray(rows)&&rows[0]) cid=rows[0].id;
+    } else {
+      cid=row?row.id:'';
+    }
+  }catch(e){ console.error('insert error:',e); }
 
   const encoded=btoa(encodeURIComponent(JSON.stringify(data)));
-  const cid=row?row.id:'';
   const url=`${location.origin}/contract.html?d=${encoded}&cid=${cid}`;
   document.getElementById('linkUrl').textContent=url;
   document.getElementById('linkBox').style.display='block';

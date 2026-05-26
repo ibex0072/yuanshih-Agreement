@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源石學館｜服務契約書簽署</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;600&display=swap');
 :root{--ink:#1a1a2e;--paper:#faf8f3;--cream:#f0ece0;--red:#8b1a1a;--gold:#b8963e;--line:#d4cfc4}
@@ -282,7 +282,7 @@ canvas#sigCanvas{display:block;width:100%;height:200px;background:white;cursor:c
 <script>
 const SUPABASE_URL='https://sxkougqqpqvrhtggtnkn.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4dWtvdWdxcHF2cmh0Z2d0bmtuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzY4NDUsImV4cCI6MjA5NTM1Mjg0NX0.5zzD1V2Pc1CFifV6Q1Jj9SEanMrtNy1PUinsUFs0_cs';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const sb=(window.supabase||supabase).createClient(SUPABASE_URL,SUPABASE_KEY);
 
 let D=null,contractId=null;
 try{
