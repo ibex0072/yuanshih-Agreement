@@ -174,7 +174,9 @@ body{font-family:'Noto Sans TC',sans-serif;background:#ddd8cc;min-height:100vh;p
     <div class="filter-bar">
       <input id="searchInput" placeholder="搜尋學生姓名、課程…" oninput="filterContracts()">
       <button class="refresh-btn" onclick="loadContracts()">↻ 重新整理</button>
+      <button class="refresh-btn" onclick="runDiag()" style="background:#fff3cd;border-color:#ffc107;color:#856404">🔍 診斷連線</button>
     </div>
+    <div id="diagBox" style="display:none;margin-bottom:12px;padding:12px;background:#f8f9fa;border:1px solid #dee2e6;font-size:11px;font-family:monospace;line-height:1.8;border-radius:2px;word-break:break-all"></div>
     <div id="historyList"></div>
   </div>
 </div>
@@ -498,6 +500,43 @@ function downloadPDF(id){
 setInterval(()=>{
   if(document.getElementById('tab-history').classList.contains('active')) loadContracts();
 },30000);
+
+async function runDiag(){
+  const box=document.getElementById('diagBox');
+  box.style.display='block';
+  box.innerHTML='🔄 測試中...<br>';
+  const log=(msg)=>{box.innerHTML+=msg+'<br>';};
+  
+  log(`📍 SUPABASE_URL = ${SUPABASE_URL}`);
+  log(`🔑 KEY = ${SUPABASE_KEY.substring(0,30)}...`);
+  
+  // Test 1: Basic fetch to supabase
+  try{
+    const url=`${SUPABASE_URL}/rest/v1/contracts?select=id,student_name,status&order=created_at.desc&limit=5`;
+    log(`🌐 Fetching: ${url.substring(0,80)}...`);
+    const res=await fetch(url,{
+      headers:{
+        'apikey':SUPABASE_KEY,
+        'Authorization':'Bearer '+SUPABASE_KEY,
+        'Accept':'application/json'
+      }
+    });
+    log(`📥 Status: ${res.status} ${res.statusText}`);
+    const text=await res.text();
+    log(`📦 Response: ${text.substring(0,200)}`);
+    if(res.ok){
+      const data=JSON.parse(text);
+      log(`✅ 成功！找到 ${data.length} 筆記錄`);
+      allContracts=[];
+      loadContracts();
+    }else{
+      log(`❌ 失敗：${text}`);
+    }
+  }catch(e){
+    log(`❌ 錯誤：${e.message}`);
+    log('💡 可能是 CORS 或網路問題');
+  }
+}
 </script>
 </body>
 </html>
