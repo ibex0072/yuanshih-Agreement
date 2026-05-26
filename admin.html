@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源石學館｜合約管理系統</title>
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;600&display=swap');
 :root{--ink:#1a1a2e;--paper:#faf8f3;--cream:#f0ece0;--red:#8b1a1a;--gold:#b8963e;--line:#d4cfc4;--green:#2d6a4f}
@@ -194,7 +193,63 @@ body{font-family:'Noto Sans TC',sans-serif;background:#ddd8cc;min-height:100vh;p
 <script>
 const SUPABASE_URL='https://sxkougqqpqvrhtggtnkn.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4dWtvdWdxcHF2cmh0Z2d0bmtuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzY4NDUsImV4cCI6MjA5NTM1Mjg0NX0.5zzD1V2Pc1CFifV6Q1Jj9SEanMrtNy1PUinsUFs0_cs';
-const sb=(window.supabase||supabase).createClient(SUPABASE_URL,SUPABASE_KEY);
+
+// Pure REST API helper - no SDK needed
+const sb={
+  from:(table)=>({
+    select:(cols='*')=>({
+      order:(col,opts={})=>_rest('GET',table,{select:cols,order:`${col}.${opts.ascending!==false?'asc':'desc'}`}),
+      eq:(col,val)=>_rest('GET',table,{select:cols,[col]:`eq.${val}`}),
+      single:()=>_rest('GET',table,{select:cols,limit:1}).then(r=>({data:r.data?.[0]??null,error:r.error}))
+    }),
+    insert:(payload)=>({
+      select:(cols='*')=>({
+        single:()=>_restPost(table,payload,cols)
+      }),
+      then:(res,rej)=>_restPost(table,payload).then(res,rej)
+    }),
+    update:(payload)=>({
+      eq:(col,val)=>_restPatch(table,payload,col,val)
+    })
+  })
+};
+
+async function _rest(method,table,params={}){
+  try{
+    const q=Object.entries(params).map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join('&');
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}?${q}`,{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Accept':'application/json'}
+    });
+    if(!res.ok){const e=await res.text();return{data:null,error:{message:e}};}
+    const data=await res.json();
+    return{data,error:null};
+  }catch(e){return{data:null,error:{message:e.message}};}
+}
+
+async function _restPost(table,payload,cols='*'){
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}`,{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(payload)
+    });
+    if(!res.ok){const e=await res.text();return{data:null,error:{message:e}};}
+    const rows=await res.json();
+    return{data:Array.isArray(rows)?rows[0]:rows,error:null};
+  }catch(e){return{data:null,error:{message:e.message}};}
+}
+
+async function _restPatch(table,payload,col,val){
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}?${col}=eq.${encodeURIComponent(val)}`,{
+      method:'PATCH',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(payload)
+    });
+    if(!res.ok){const e=await res.text();return{data:null,error:{message:e}};}
+    return{data:await res.json(),error:null};
+  }catch(e){return{data:null,error:{message:e.message}};}
+}
 
 let allContracts=[];
 
@@ -239,25 +294,14 @@ async function generateLink(){
       total_fee:total,pay_method:data.payMethod,
       status:'pending',contract_data:JSON.stringify(data)
     };
-    // Try supabase client first
-    let row=null,error=null;
-    try{
-      const result=await sb.from('contracts').insert(payload).select('id').single();
-      row=result.data;error=result.error;
-    }catch(e){ error=e; }
-
-    if(error||!row){
-      // Fallback to direct REST
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/contracts`,{
-        method:'POST',
-        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-        body:JSON.stringify(payload)
-      });
-      const rows=await res.json();
-      if(Array.isArray(rows)&&rows[0]) cid=rows[0].id;
-    } else {
-      cid=row?row.id:'';
-    }
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/contracts`,{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(payload)
+    });
+    const rows=await res.json();
+    if(Array.isArray(rows)&&rows[0]) cid=rows[0].id;
+    else if(rows&&rows.id) cid=rows.id;
   }catch(e){ console.error('insert error:',e); }
 
   const encoded=btoa(encodeURIComponent(JSON.stringify(data)));
@@ -275,14 +319,21 @@ function resetForm(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-// ── Load Contracts ──
+// ── Load Contracts (pure REST, no SDK) ──
 async function loadContracts(){
   document.getElementById('historyList').innerHTML='<div class="history-empty">載入中…</div>';
-  const{data,error}=await sb.from('contracts').select('*').order('created_at',{ascending:false});
-  if(error){document.getElementById("historyList").innerHTML=`<div class="history-empty">載入失敗：${error.message}</div>`;console.error(error);return;}
-  allContracts=data||[];
-  renderContracts(allContracts);
-  updateStats(allContracts);
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/contracts?select=*&order=created_at.desc`,{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Accept':'application/json'}
+    });
+    if(!res.ok){const t=await res.text();throw new Error(`HTTP ${res.status}: ${t}`);}
+    allContracts=await res.json();
+    renderContracts(allContracts);
+    updateStats(allContracts);
+  }catch(err){
+    document.getElementById('historyList').innerHTML=`<div class="history-empty">載入失敗：${err.message}</div>`;
+    console.error('loadContracts:',err);
+  }
 }
 
 function updateStats(list){
