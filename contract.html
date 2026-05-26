@@ -211,15 +211,61 @@ canvas#sigCanvas{display:block;width:100%;height:200px;background:white;cursor:c
     <div class="check-header">
       <div class="check-icon">📋</div>
       <div>
-        <h3>確認合約資料</h3>
-        <p>請核對資訊，確認無誤後送出；送出後合約正式生效，可立即下載 PDF。</p>
+        <h3>確認合約完整內容</h3>
+        <p>請確認以下合約全文及您的簽名，確認無誤後再送出。送出後合約正式生效。</p>
       </div>
     </div>
-    <div class="sum-grid" id="summaryGrid"></div>
-    <div class="sig-preview-box">
-      <div class="label">法定代理人親筆簽名預覽</div>
-      <img id="sigPreview" src="" alt="簽名預覽">
+
+    <!-- 合約全文預覽 -->
+    <div style="border:1.5px solid var(--line);background:white;margin-bottom:18px">
+      <div style="padding:20px 28px 28px">
+        <!-- Header -->
+        <div style="text-align:center;padding-bottom:16px;border-bottom:2.5px double var(--ink);margin-bottom:18px">
+          <div style="font-family:'Noto Serif TC',serif;font-size:13px;font-weight:700;letter-spacing:3px;color:var(--red);margin-bottom:4px">台北市私立源石學館文理語文短期補習班</div>
+          <div style="font-family:'Noto Serif TC',serif;font-size:19px;font-weight:700;letter-spacing:5px;margin-bottom:3px">服務契約書</div>
+          <div style="font-size:11px;color:#888;letter-spacing:2px">核准字號：7027　｜　負責人：陳柏汎</div>
+        </div>
+        <!-- Contract full text -->
+        <div id="confirmContractBody" style="font-size:13px;line-height:2;color:#333"></div>
+
+        <!-- 簽署區 -->
+        <div style="margin-top:20px;border:1.5px solid var(--line);padding:16px 20px">
+          <div style="font-size:11px;letter-spacing:4px;text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line);color:var(--ink);font-family:'Noto Serif TC',serif">立　約　人　簽　署</div>
+          <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+            <!-- Parent sig -->
+            <div style="flex:1;min-width:200px">
+              <div style="font-size:10px;color:#999;letter-spacing:1px;margin-bottom:4px">甲方（法定代理人）</div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:8px" id="confirm-parent-name"></div>
+              <div style="font-size:10px;color:#999;margin-bottom:4px">親筆簽名：</div>
+              <div style="border:1px solid var(--line);background:#fafafa;padding:6px;display:inline-block">
+                <img id="sigPreview" src="" alt="簽名預覽" style="max-height:70px;max-width:220px;object-fit:contain;display:block">
+              </div>
+              <div style="font-size:11px;color:#888;margin-top:6px">學生：<span id="confirm-student-name"></span></div>
+            </div>
+            <!-- School seal -->
+            <div style="flex:0 0 120px;text-align:center">
+              <div style="font-size:10px;color:#999;letter-spacing:1px;margin-bottom:8px">乙方（補習班用章）</div>
+              <div style="width:80px;height:80px;border:2px solid var(--red);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto;color:var(--red);font-size:7px;line-height:1.7;letter-spacing:0.5px">
+                <div style="font-size:8px;font-weight:700">源石學館</div>
+                <div>文理語文</div>
+                <div>短期補習班</div>
+                <div style="font-size:6px;border:0.5px solid var(--red);padding:1px 3px;margin-top:2px">大　章</div>
+              </div>
+              <div style="margin-top:10px;font-size:10px;color:#888">負責人簽章：</div>
+              <div style="border-bottom:1px solid #bbb;width:80px;margin:6px auto;height:22px"></div>
+            </div>
+          </div>
+          <div style="text-align:right;font-size:11px;color:#888;margin-top:12px;padding-top:8px;border-top:1px solid var(--line)">
+            簽署日期：<strong id="confirm-date"></strong>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;font-size:10px;color:#aaa;text-align:center;line-height:1.9">
+          台北市私立源石學館文理語文短期補習班　｜　核准字號：7027　｜　台北市南京東路四段133巷7弄36號　｜　02-2713-8159
+        </div>
+      </div>
     </div>
+
     <div class="btn-row">
       <button class="btn btn-back" onclick="goToPanel(2)">← 上一步</button>
       <button class="btn btn-primary" id="submitBtn" onclick="submitContract()">確認簽署送出</button>
@@ -381,15 +427,76 @@ const tpb=document.getElementById('toPreviewBtn');
 if(tpb) tpb.addEventListener('click',()=>{
   if(!D)return;
   const total=parseInt(D.totalFee||0);
-  const fields=[
-    ['學生姓名',D.studentName],['課程科目',D.subject],
-    ['家長姓名',D.parentName],['家長電話',D.parentPhone],
-    ['開課日期',fmtDate(D.startDate)],['每週時數',D.hours||'（未填）'],
-    ['繳費總額','NT$ '+total.toLocaleString()],['繳費方式',D.payMethod],
-    ['任課師資',D.teacher||'（未填）'],['簽署日期',dateStr],
-  ];
-  document.getElementById('summaryGrid').innerHTML=fields.map(([k,v])=>`<div class="sum-item"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  // Set signature preview
   document.getElementById('sigPreview').src=canvas.toDataURL('image/png');
+  // Set names and date in confirm panel
+  const pn=document.getElementById('confirm-parent-name');
+  const sn=document.getElementById('confirm-student-name');
+  const cd=document.getElementById('confirm-date');
+  if(pn) pn.textContent=D.parentName||'—';
+  if(sn) sn.textContent=D.studentName||'—';
+  if(cd) cd.textContent=dateStr;
+  // Build full contract in confirm panel
+  const cb=document.getElementById('confirmContractBody');
+  if(cb) cb.innerHTML=`
+    <div class="art">一、立約人</div>
+    <div class="party-box">
+      <strong>甲方（學生）：${D.studentName}</strong>　聯絡電話：${D.studentPhone}<br>
+      地址：${D.studentAddr||'台北市南京東路四段133巷7弄36號'}<br>
+      法定代理人：<strong>${D.parentName}</strong>　電話：${D.parentPhone}
+    </div>
+    <div class="cp" style="font-size:11.5px;color:#888">甲方為限制行為能力人時，須得法定代理人允許或承認，契約始為有效。甲方為無行為能力人時，應由其法定代理人代為或代受意思表示。</div>
+    <div class="cp"><strong>乙方：</strong>台北市私立源石學館文理語文短期補習班（核准字號：7027）｜負責人：陳柏汎　｜　電話：02-2713-8159</div>
+    <div class="dv"></div>
+    <div class="art">二、契約審閱</div>
+    <div class="hl">本契約於 2025-10-20 交付消費者審閱，審閱期間至少五日。</div>
+    <div class="art">三、服務科目</div>
+    <div class="cp">科目：<strong>${D.subject}</strong></div>
+    <div class="art">四、課程時數</div>
+    <div class="cp">每週授課 <strong>${D.hours||'（未填）'}</strong></div>
+    <div class="art">五、修業期間及開課日</div>
+    <div class="cp">開課日：<strong>${fmtDate(D.startDate)}</strong>，開始至甲方停止繳費或退費或乙方無法繼續提供服務時。</div>
+    <div class="art">六、師資</div>
+    <div class="cp">任課教師：<strong>${D.teacher||'（未填）'}</strong>。乙方無正當事由不得任意更換教學人員，更換時應以相同專業資格者為限，更換人數不得超過三分之一。</div>
+    <div class="art">七、上課地點</div>
+    <div class="cp">台北市南京東路四段133巷7弄36號。如遇停水、停電或不可抗力之災害，乙方得調動上課地點及教室。</div>
+    <div class="art">八、上課人數上限及合班</div>
+    <div class="cp">乙方開設供甲方就讀之班級，其上課人數不得逾 4 人。實際人數未達上限三分之二者，經通知並得甲方同意後方可合班，合班後人數不得逾上限。乙方違反者，甲方得終止契約並要求退費，乙方應按尚未上課時數比例核算退費加百分之十退還甲方。</div>
+    <div class="art">九、可歸責缺課處理</div>
+    <div class="cp">因乙方原因（如教學人員請假、排課錯誤等）致學生缺課者，乙方應補課、提供錄影供補課，或按比例退還課程費用。</div>
+    <div class="art">十、資料保護</div>
+    <div class="cp">未經甲方書面同意，乙方不得擅自將甲方個人資料提供給第三人或作不當利用，其法律效果依相關法律辦理。</div>
+    <div class="art">十一、疑義之處理</div>
+    <div class="cp">本契約各條款如有疑義時，應依消費者保護法第十一條第二項規定，為有利甲方之解釋。</div>
+    <div class="art">十二、請假規定</div>
+    <div class="col"><ol><li>請假應於前日 21:00 前告知。</li><li>如遇臨時狀況須請假，每學期以四次為限。（病假不在此限，需出示證明）</li></ol></div>
+    <div class="art">十三、收費手續</div>
+    <div class="cp">繳費總金額新臺幣 <span class="amount-blank">${fmtN(total)}</span> 元</div>
+    <div class="cp" style="padding-left:12px;font-size:12px">學費：NT$ ${fmtN(D.feeTuition)}　教材費：NT$ ${fmtN(D.feeMaterial)}　其他費用：NT$ ${fmtN(D.feeOther)}</div>
+    <div class="cp">繳費方式：<strong>${D.payMethod}</strong>。乙方收取費用應開立正式收據交由甲方收執。</div>
+    <div class="cp">履約保障：乙方已加入台北市短期補習班呂保協會補習服務聯合連帶保證協定（會員編號 351）。</div>
+    <div class="art">十四、退費手續</div>
+    <div class="cp">依教育部訂定之短期補習班設立及管理準則及相關自治法規辦理。退費方式：現金（含轉帳匯款），應於辦理解約手續後一個月內執行完竣。</div>
+    <div class="art">十五、乙方終止契約</div>
+    <div class="cp">甲方有下列情形之一者，乙方得終止契約：</div>
+    <div class="col"><ol><li>甲方於補習期間無故缺席超過總時數五分之一。</li><li>甲方有互毆、竊盜或其他違法行為，情節重大。</li><li>甲方經查有吸毒、販毒或運送毒品行為。</li></ol></div>
+    <div class="cp">依前項終止契約者，依退費手續之規定辦理。</div>
+    <div class="art">十六、甲方終止契約</div>
+    <div class="cp">乙方有下列情形之一者，甲方得終止契約，並要求乙方退費：</div>
+    <div class="col"><ol><li>無正當事由，變更課程、科目、時數、地點或更換超過三分之一師資者，乙方應依甲方已繳金額加百分之三十退還。</li><li>乙方申請停辦或被主管機關廢止者，按賸餘時數比例退還費用。</li><li>教室列危險建築物勒令停用者，依尚未上課時數退還費用。</li></ol></div>
+    <div class="art">十七、附件效力及契約分存</div>
+    <div class="cp">本契約一式二份，甲乙雙方各執一份，自簽約日起生效，保存期限五年。</div>
+    <div class="art">十八、未盡事宜</div>
+    <div class="cp">本契約如有未盡事宜，依相關法令、習慣及誠實信用原則公平解決之。</div>
+    <div class="dv"></div>
+    <div class="art" style="color:var(--red)">附件：台北市補習班退費標準</div>
+    <div class="col"><ol>
+      <li>開課日前第六十日前申請→退還 <strong>95%</strong>（超過NT$1,000部分仍應退還）</li>
+      <li>開課日前第五十九日至開課日課程開始前申請→退還 <strong>90%</strong>（超過NT$1,000部分仍應退還）</li>
+      <li>開課當日課程結束後至第二次上課前申請→退還 <strong>70%</strong></li>
+      <li>第二次上課後未達總時數三分之一前申請→退還 <strong>50%</strong></li>
+      <li>達總時數三分之一以上後申請→<strong>不予退還</strong></li>
+    </ol></div>`;
   goToPanel(3);
 });
 
