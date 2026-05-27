@@ -120,17 +120,20 @@ body{font-family:'Noto Sans TC',sans-serif;background:#ddd8cc;min-height:100vh;p
   <div class="tab-content active" id="tab-new">
     <div class="info-section">
       <h4>甲方（學生）資料</h4>
+      <div style="font-size:11.5px;color:#888;margin-bottom:10px;padding:8px 12px;background:#fff8e8;border-left:3px solid #b8963e;border-radius:2px">
+        💡 僅需填寫學生姓名，其餘資料（電話、地址、法定代理人）由家長在簽署頁面自行填寫。
+      </div>
       <div class="grid">
-        <div class="field"><label>學生姓名 <span>*</span></label><input id="studentName" placeholder="請填寫"></div>
-        <div class="field"><label>聯絡電話 <span>*</span></label><input id="studentPhone" type="tel" placeholder="請填寫"></div>
-        <div class="field full"><label>地址</label><input id="studentAddr" value="台北市南京東路四段133巷7弄36號"></div>
+        <div class="field"><label>學生姓名 <span>*</span></label><input id="studentName" placeholder="請填寫學生姓名"></div>
+        <div class="field" style="display:none"><input id="studentPhone" value=""></div>
+        <div class="field" style="display:none"><input id="studentAddr" value=""></div>
       </div>
     </div>
-    <div class="info-section">
+    <div class="info-section" style="display:none">
       <h4>法定代理人（家長）資料</h4>
       <div class="grid">
-        <div class="field"><label>代理人姓名 <span>*</span></label><input id="parentName" placeholder="請填寫"></div>
-        <div class="field"><label>代理人電話 <span>*</span></label><input id="parentPhone" type="tel" placeholder="請填寫"></div>
+        <div class="field"><input id="parentName" value=""></div>
+        <div class="field"><input id="parentPhone" value=""></div>
       </div>
     </div>
     <div class="info-section">
@@ -470,10 +473,10 @@ function downloadPDF(id){
       <div style="page-break-inside:avoid"><div style="font-size:10.5pt;font-weight:700;padding:8pt 0 4pt;color:#1a1a2e">六、師資</div><div style="font-size:9.5pt;margin-bottom:5pt">任課教師：<strong>${c.teacher||'（未填）'}</strong>。乙方無正當事由不得任意更換教學人員，更換人數不得超過三分之一。</div></div>
       <div style="page-break-inside:avoid"><div style="font-size:10.5pt;font-weight:700;padding:8pt 0 4pt;color:#1a1a2e">七、上課地點</div><div style="font-size:9.5pt;margin-bottom:5pt">台北市南京東路四段133巷7弄36號。如遇不可抗力之災害，乙方得調動上課地點。</div></div>
       <div style="page-break-inside:avoid"><div style="font-size:10.5pt;font-weight:700;padding:8pt 0 4pt;color:#1a1a2e">八、上課人數上限及合班</div><div style="font-size:9.5pt;margin-bottom:5pt">每班上課人數不得逾 4 人。合班需經通知並得甲方同意，合班後人數不得逾上限。乙方違反者，甲方得終止契約並要求退費加百分之十。</div></div>
-      <div style="page-break-inside:avoid"><div style="font-size:10.5pt;font-weight:700;padding:8pt 0 4pt;color:#1a1a2e">九、可歸責缺課處理</div><div style="font-size:9.5pt;margin-bottom:5pt">因乙方原因致學生缺課者，乙方應補課、提供錄影供補課，或按比例退還課程費用。</div></div>
+      <div style="page-break-inside:avoid"><div style="font-size:10.5pt;font-weight:700;padding:8pt 0 4pt;color:#1a1a2e">九、可歸責缺課處理</div><div style="font-size:9.5pt;margin-bottom:5pt">因可歸責於補習班之事由（如教學人員請假、排課錯誤等），使課程既定上課時間調動，致學生時間無法配合而缺課者，乙方應予補課、提供該節課錄音或錄影供補課，或按比例退還該節課程費用。</div></div>
       <div style="page-break-inside:avoid"><div style="font-size:10.5pt;font-weight:700;padding:8pt 0 4pt;color:#1a1a2e">十、資料保護</div><div style="font-size:9.5pt;margin-bottom:5pt">未經甲方書面同意，乙方不得擅自將甲方個人資料提供給第三人或作不當利用。</div></div>
       <div style="page-break-inside:avoid"><div style="font-size:10.5pt;font-weight:700;padding:8pt 0 4pt;color:#1a1a2e">十一、疑義之處理</div><div style="font-size:9.5pt;margin-bottom:5pt">本契約各條款如有疑義，應依消費者保護法第十一條第二項，為有利甲方之解釋。</div></div>
-      <div style="page-break-inside:avoid"><div style="font-size:10.5pt;font-weight:700;padding:8pt 0 4pt;color:#1a1a2e">十二、請假規定</div><ol style="padding-left:16pt;font-size:9.5pt;margin-bottom:5pt"><li>請假應於前日 21:00 前告知。</li><li>每學期臨時請假以四次為限（病假需出示證明）。</li></ol></div>
+      <div style="page-break-inside:avoid"><div style="font-size:10.5pt;font-weight:700;padding:8pt 0 4pt;color:#1a1a2e">十二、請假規定</div><ol style="padding-left:16pt;font-size:9.5pt;margin-bottom:5pt"><li>事假須於上課 2 日前告知；病假須於上課 3 小時前通知。</li><li>每學期請假以 4 次為限。於次數內且符合請假規定者，由授課老師依學生目前學習進度進行評估，若進度許可則無需補課；若進度落後，則由補習班另行安排時間補課。</li><li>每學期請假超過 4 次者，超出之次數恕不提供補課，改以退還該堂課半價學費處理。</li></ol></div>
       <div style="page-break-inside:avoid">
         <div style="font-size:10.5pt;font-weight:700;padding:8pt 0 4pt;color:#1a1a2e">十三、收費手續</div>
         <div style="font-size:9.5pt;margin-bottom:3pt">繳費總金額：新臺幣 <span style="border-bottom:1pt solid #111;display:inline-block;min-width:55pt;text-align:center;font-weight:700;color:#8b1a1a">${fmtN(total)}</span> 元</div>

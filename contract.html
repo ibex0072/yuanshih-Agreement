@@ -180,6 +180,30 @@ canvas#sigCanvas{display:block;width:100%;height:200px;background:white;cursor:c
       <div class="c-meta">核准字號：7027　｜　負責人：陳柏汎</div>
     </div>
     <div class="contract-scroll" id="contractBody"></div>
+
+    <!-- 家長填寫區 -->
+    <div style="margin:16px 0;padding:16px 20px;background:var(--cream);border:1.5px solid var(--gold);border-radius:2px">
+      <div style="font-size:12px;font-weight:700;color:var(--red);letter-spacing:1px;margin-bottom:12px">📝 請填寫以下資料（由家長填寫）</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 16px">
+        <div>
+          <label style="font-size:11px;color:#888;display:block;margin-bottom:3px">學生聯絡電話 <span style="color:var(--red)">*</span></label>
+          <input id="inp-phone" type="tel" placeholder="例：0912345678" style="width:100%;border:1px solid var(--line);padding:7px 10px;font-size:12.5px;font-family:inherit;background:white;border-radius:2px">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#888;display:block;margin-bottom:3px">法定代理人姓名 <span style="color:var(--red)">*</span></label>
+          <input id="inp-parent" type="text" placeholder="請填寫家長姓名" style="width:100%;border:1px solid var(--line);padding:7px 10px;font-size:12.5px;font-family:inherit;background:white;border-radius:2px">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#888;display:block;margin-bottom:3px">法定代理人電話 <span style="color:var(--red)">*</span></label>
+          <input id="inp-parentphone" type="tel" placeholder="例：0912345678" style="width:100%;border:1px solid var(--line);padding:7px 10px;font-size:12.5px;font-family:inherit;background:white;border-radius:2px">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#888;display:block;margin-bottom:3px">學生地址 <span style="color:var(--red)">*</span></label>
+          <input id="inp-addr" type="text" placeholder="請填寫通訊地址" style="width:100%;border:1px solid var(--line);padding:7px 10px;font-size:12.5px;font-family:inherit;background:white;border-radius:2px">
+        </div>
+      </div>
+    </div>
+
     <div class="read-bar">
       <input type="checkbox" id="readCheck">
       <label for="readCheck">本人已詳細閱讀以上所有服務契約條款（含退費標準），確認了解並同意遵守本契約之全部規定。</label>
@@ -315,9 +339,10 @@ function buildContract(){
   document.getElementById('contractBody').innerHTML=`
     <div class="art">一、立約人</div>
     <div class="party-box">
-      <strong>甲方（學生）：${D.studentName}</strong>　聯絡電話：${D.studentPhone}<br>
-      地址：${D.studentAddr||'台北市南京東路四段133巷7弄36號'}<br>
-      法定代理人：<strong>${D.parentName}</strong>　電話：${D.parentPhone}
+      <strong>甲方（學生）：${D.studentName}</strong><br>
+      聯絡電話：<span id="disp-phone" style="color:#8b1a1a;font-weight:600">${D.studentPhone||'（家長填寫）'}</span><br>
+      地址：<span id="disp-addr" style="color:#8b1a1a;font-weight:600">${D.studentAddr||'（家長填寫）'}</span><br>
+      法定代理人：<span id="disp-parent" style="color:#8b1a1a;font-weight:600">${D.parentName||'（家長填寫）'}</span>　電話：<span id="disp-parentphone" style="color:#8b1a1a;font-weight:600">${D.parentPhone||'（家長填寫）'}</span>
     </div>
     <div class="cp" style="font-size:11.5px;color:#888">甲方為限制行為能力人時，須得法定代理人允許或承認，契約始為有效。甲方為無行為能力人時，應由其法定代理人代為或代受意思表示。</div>
     <div class="cp"><strong>乙方：</strong>台北市私立源石學館文理語文短期補習班（核准字號：7027）<br>負責人：陳柏汎　｜　電話：02-2713-8159　｜　地址：台北市南京東路四段133巷7弄36號</div>
@@ -344,7 +369,11 @@ function buildContract(){
     <div class="art">十一、疑義之處理</div>
     <div class="cp">本契約各條款如有疑義時，應依消費者保護法第十一條第二項規定，為有利甲方之解釋。</div>
     <div class="art">十二、請假規定</div>
-    <div class="col"><ol><li>請假應於前日 21:00 前告知。</li><li>如遇臨時狀況須請假，每學期以四次為限。（病假不在此限，需出示證明）</li></ol></div>
+    <div class="col"><ol>
+      <li>事假須於上課 2 日前告知；病假須於上課 3 小時前通知。</li>
+      <li>每學期請假以 4 次為限。於次數內且符合請假規定者，由授課老師依學生目前學習進度進行評估，若進度許可則無需補課；若進度落後，則由補習班另行安排時間補課。</li>
+      <li>每學期請假超過 4 次者，超出之次數恕不提供補課，改以退還該堂課半價學費處理。</li>
+    </ol></div>
     <div class="art">十三、收費手續</div>
     <div class="cp">繳費總金額新臺幣 <span class="amount-blank">${fmtN(total)}</span> 元</div>
     <div class="cp" style="padding-left:12px;font-size:12px">（1）學費：NT$ ${fmtN(D.feeTuition)}　（2）教材費：NT$ ${fmtN(D.feeMaterial)}　（3）其他費用：NT$ ${fmtN(D.feeOther)}</div>
@@ -392,7 +421,23 @@ if(D){
   const rc=document.getElementById('readCheck');
   const tsb=document.getElementById('toSigBtn');
   if(rc&&tsb) rc.addEventListener('change',()=>tsb.disabled=!rc.checked);
-  if(tsb) tsb.addEventListener('click',()=>goToPanel(2));
+  if(tsb) tsb.addEventListener('click',()=>{
+    const phone=(document.getElementById('inp-phone')||{}).value?.trim()||'';
+    const parent=(document.getElementById('inp-parent')||{}).value?.trim()||'';
+    const parentphone=(document.getElementById('inp-parentphone')||{}).value?.trim()||'';
+    const addr=(document.getElementById('inp-addr')||{}).value?.trim()||'';
+    if(!phone||!parent||!parentphone||!addr){
+      alert('請填寫所有必填資料：學生電話、地址、法定代理人姓名及電話');
+      return;
+    }
+    D.studentPhone=phone; D.studentAddr=addr; D.parentName=parent; D.parentPhone=parentphone;
+    // update display in contract body
+    const dp=document.getElementById('disp-phone'); if(dp) dp.textContent=phone;
+    const da=document.getElementById('disp-addr'); if(da) da.textContent=addr;
+    const dpar=document.getElementById('disp-parent'); if(dpar) dpar.textContent=parent;
+    const dpp=document.getElementById('disp-parentphone'); if(dpp) dpp.textContent=parentphone;
+    goToPanel(2);
+  });
 }
 
 // Canvas
@@ -445,9 +490,10 @@ if(tpb) tpb.addEventListener('click',()=>{
   if(cb) cb.innerHTML=`
     <div class="art">一、立約人</div>
     <div class="party-box">
-      <strong>甲方（學生）：${D.studentName}</strong>　聯絡電話：${D.studentPhone}<br>
-      地址：${D.studentAddr||'台北市南京東路四段133巷7弄36號'}<br>
-      法定代理人：<strong>${D.parentName}</strong>　電話：${D.parentPhone}
+      <strong>甲方（學生）：${D.studentName}</strong><br>
+      聯絡電話：<span id="disp-phone" style="color:#8b1a1a;font-weight:600">${D.studentPhone||'（家長填寫）'}</span><br>
+      地址：<span id="disp-addr" style="color:#8b1a1a;font-weight:600">${D.studentAddr||'（家長填寫）'}</span><br>
+      法定代理人：<span id="disp-parent" style="color:#8b1a1a;font-weight:600">${D.parentName||'（家長填寫）'}</span>　電話：<span id="disp-parentphone" style="color:#8b1a1a;font-weight:600">${D.parentPhone||'（家長填寫）'}</span>
     </div>
     <div class="cp" style="font-size:11.5px;color:#888">甲方為限制行為能力人時，須得法定代理人允許或承認，契約始為有效。甲方為無行為能力人時，應由其法定代理人代為或代受意思表示。</div>
     <div class="cp"><strong>乙方：</strong>台北市私立源石學館文理語文短期補習班（核准字號：7027）｜負責人：陳柏汎　｜　電話：02-2713-8159</div>
@@ -474,7 +520,11 @@ if(tpb) tpb.addEventListener('click',()=>{
     <div class="art">十一、疑義之處理</div>
     <div class="cp">本契約各條款如有疑義時，應依消費者保護法第十一條第二項規定，為有利甲方之解釋。</div>
     <div class="art">十二、請假規定</div>
-    <div class="col"><ol><li>請假應於前日 21:00 前告知。</li><li>如遇臨時狀況須請假，每學期以四次為限。（病假不在此限，需出示證明）</li></ol></div>
+    <div class="col"><ol>
+      <li>事假須於上課 2 日前告知；病假須於上課 3 小時前通知。</li>
+      <li>每學期請假以 4 次為限。於次數內且符合請假規定者，由授課老師依學生目前學習進度進行評估，若進度許可則無需補課；若進度落後，則由補習班另行安排時間補課。</li>
+      <li>每學期請假超過 4 次者，超出之次數恕不提供補課，改以退還該堂課半價學費處理。</li>
+    </ol></div>
     <div class="art">十三、收費手續</div>
     <div class="cp">繳費總金額新臺幣 <span class="amount-blank">${fmtN(total)}</span> 元</div>
     <div class="cp" style="padding-left:12px;font-size:12px">學費：NT$ ${fmtN(D.feeTuition)}　教材費：NT$ ${fmtN(D.feeMaterial)}　其他費用：NT$ ${fmtN(D.feeOther)}</div>
