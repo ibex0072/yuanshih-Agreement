@@ -186,7 +186,7 @@ canvas#sigCanvas{display:block;width:100%;height:200px;background:white;cursor:c
       <div style="font-size:12px;font-weight:700;color:var(--red);letter-spacing:1px;margin-bottom:12px">📝 請填寫以下資料（由家長填寫）</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 16px">
         <div>
-          <label style="font-size:11px;color:#888;display:block;margin-bottom:3px">學生聯絡電話 <span style="color:var(--red)">*</span></label>
+          <label style="font-size:11px;color:#888;display:block;margin-bottom:3px">學生聯絡電話 <span style="color:#aaa">（選填）</span></label>
           <input id="inp-phone" type="tel" placeholder="例：0912345678" style="width:100%;border:1px solid var(--line);padding:7px 10px;font-size:12.5px;font-family:inherit;background:white;border-radius:2px">
         </div>
         <div>
@@ -213,12 +213,12 @@ canvas#sigCanvas{display:block;width:100%;height:200px;background:white;cursor:c
 
   <div class="panel" id="panel2">
     <div class="sig-intro">
-      請<strong>法定代理人（家長）</strong>在下方以手指或滑鼠<strong>親筆簽名</strong>。<br>
-      簽名代表法定代理人已閱讀、理解並同意本服務契約書之全部條款。
+      請在下方以手指或滑鼠<strong>親筆簽名</strong>。<br>
+      <span style="font-size:12px;color:#888">學生已成年者請學生本人簽名；未滿18歲者請<strong>法定代理人（家長）</strong>簽名。</span>
     </div>
     <div class="sig-wrap">
       <div class="sig-label">
-        <span>法定代理人親簽區</span>
+        <span id="sigLabelName" style="font-size:13px"></span>
         <button class="sig-clear" onclick="clearSig()">✕ 清除重簽</button>
       </div>
       <canvas id="sigCanvas" width="760" height="200"></canvas>
@@ -261,7 +261,8 @@ canvas#sigCanvas{display:block;width:100%;height:200px;background:white;cursor:c
               <div style="font-size:10px;color:#999;letter-spacing:1px;margin-bottom:4px">甲方（學生及法定代理人）</div>
               <div style="font-size:13px;font-weight:600;margin-bottom:4px" id="confirm-parent-name"></div>
               <div style="font-size:11px;color:#888;margin-bottom:10px">學生：<span id="confirm-student-name"></span></div>
-              <div style="font-size:10px;color:#999;margin-bottom:6px">法定代理人親筆簽名：</div>
+              <div style="font-size:10px;color:#999;margin-bottom:4px">簽名人：<span id="confirm-signer-name" style="color:var(--ink);font-weight:600"></span></div>
+              <div style="font-size:10px;color:#999;margin-bottom:6px">親筆簽名：</div>
               <div style="border:1px solid var(--line);background:#fafafa;padding:8px;min-height:90px;display:flex;align-items:center">
                 <img id="sigPreview" src="" alt="簽名預覽" style="max-height:80px;max-width:100%;object-fit:contain;display:block">
               </div>
@@ -340,7 +341,7 @@ function buildContract(){
     <div class="art">一、立約人</div>
     <div class="party-box">
       <strong>甲方（學生）：${D.studentName}</strong><br>
-      聯絡電話：<span id="disp-phone" style="color:#8b1a1a;font-weight:600">${D.studentPhone||'（家長填寫）'}</span><br>
+      ${D.studentPhone?`聯絡電話：<span id="disp-phone" style="color:#8b1a1a;font-weight:600">${D.studentPhone}</span><br>`:''}
       地址：<span id="disp-addr" style="color:#8b1a1a;font-weight:600">${D.studentAddr||'（家長填寫）'}</span><br>
       法定代理人：<span id="disp-parent" style="color:#8b1a1a;font-weight:600">${D.parentName||'（家長填寫）'}</span>　電話：<span id="disp-parentphone" style="color:#8b1a1a;font-weight:600">${D.parentPhone||'（家長填寫）'}</span>
     </div>
@@ -426,11 +427,14 @@ if(D){
     const parent=(document.getElementById('inp-parent')||{}).value?.trim()||'';
     const parentphone=(document.getElementById('inp-parentphone')||{}).value?.trim()||'';
     const addr=(document.getElementById('inp-addr')||{}).value?.trim()||'';
-    if(!phone||!parent||!parentphone||!addr){
-      alert('請填寫所有必填資料：學生電話、地址、法定代理人姓名及電話');
+    if(!parent||!parentphone||!addr){
+      alert('請填寫所有必填資料：地址、法定代理人姓名及電話');
       return;
     }
     D.studentPhone=phone; D.studentAddr=addr; D.parentName=parent; D.parentPhone=parentphone;
+    // Show signer name on signature panel
+    const lbl=document.getElementById('sigLabelName');
+    if(lbl) lbl.textContent=(parent||D.studentName||'') + ' 簽名區';
     // update display in contract body
     const dp=document.getElementById('disp-phone'); if(dp) dp.textContent=phone;
     const da=document.getElementById('disp-addr'); if(da) da.textContent=addr;
@@ -491,7 +495,7 @@ if(tpb) tpb.addEventListener('click',()=>{
     <div class="art">一、立約人</div>
     <div class="party-box">
       <strong>甲方（學生）：${D.studentName}</strong><br>
-      聯絡電話：<span id="disp-phone" style="color:#8b1a1a;font-weight:600">${D.studentPhone||'（家長填寫）'}</span><br>
+      ${D.studentPhone?`聯絡電話：<span id="disp-phone" style="color:#8b1a1a;font-weight:600">${D.studentPhone}</span><br>`:''}
       地址：<span id="disp-addr" style="color:#8b1a1a;font-weight:600">${D.studentAddr||'（家長填寫）'}</span><br>
       法定代理人：<span id="disp-parent" style="color:#8b1a1a;font-weight:600">${D.parentName||'（家長填寫）'}</span>　電話：<span id="disp-parentphone" style="color:#8b1a1a;font-weight:600">${D.parentPhone||'（家長填寫）'}</span>
     </div>
@@ -650,7 +654,7 @@ function exportPDF(){
 
     <div class="pdf-block"><div class="pdf-art">一、立約人</div>
     <div class="pdf-party">
-      甲方（學生）：<strong>${D.studentName}</strong>　聯絡電話：${D.studentPhone}<br>
+      甲方（學生）：<strong>${D.studentName}</strong>${D.studentPhone?`　聯絡電話：${D.studentPhone}`:''}<br>
       地址：${D.studentAddr||'台北市南京東路四段133巷7弄36號'}<br>
       法定代理人：<strong>${D.parentName}</strong>　電話：${D.parentPhone}
     </div>
