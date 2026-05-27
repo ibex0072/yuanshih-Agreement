@@ -230,7 +230,7 @@ function switchTab(t){
 
 // ── Generate Link ──
 async function generateLink(){
-  const req=['studentName','studentPhone','parentName','parentPhone','subject','startDate','feeTuition'];
+  const req=['studentName','subject','startDate','feeTuition'];
   for(const id of req){if(!document.getElementById(id).value.trim()){alert('請填寫必填欄位（標有 * 號）');document.getElementById(id).focus();return;}}
   const t=parseInt(document.getElementById('feeTuition').value)||0;
   const m=parseInt(document.getElementById('feeMaterial').value)||0;
@@ -238,10 +238,10 @@ async function generateLink(){
   const total=t+m+o;
   const data={
     studentName:document.getElementById('studentName').value.trim(),
-    studentPhone:document.getElementById('studentPhone').value.trim(),
-    studentAddr:document.getElementById('studentAddr').value.trim(),
-    parentName:document.getElementById('parentName').value.trim(),
-    parentPhone:document.getElementById('parentPhone').value.trim(),
+    studentPhone:'',
+    studentAddr:'',
+    parentName:'',
+    parentPhone:'',
     subject:document.getElementById('subject').value.trim(),
     hours:document.getElementById('hours').value.trim(),
     startDate:document.getElementById('startDate').value,
