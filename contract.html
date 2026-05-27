@@ -213,16 +213,26 @@ canvas#sigCanvas{display:block;width:100%;height:200px;background:white;cursor:c
 
   <div class="panel" id="panel2">
     <div class="sig-intro">
-      請在下方以手指或滑鼠<strong>親筆簽名</strong>。<br>
-      <span style="font-size:12px;color:#888">學生已成年者請學生本人簽名；未滿18歲者請<strong>法定代理人（家長）</strong>簽名。</span>
+      請在下方以手指或滑鼠<strong>親筆簽名</strong>，兩欄皆須完成。<br>
+      <span style="font-size:12px;color:#888">未滿18歲者須由法定代理人（家長）簽名。</span>
     </div>
+    <!-- 學生簽名 -->
+    <div class="sig-wrap" style="margin-bottom:16px">
+      <div class="sig-label">
+        <span>學生簽名欄</span>
+        <button class="sig-clear" onclick="clearSig('sigCanvas1','sigHint1')">✕ 清除重簽</button>
+      </div>
+      <canvas id="sigCanvas1" width="760" height="160"></canvas>
+      <div class="sig-hint" id="sigHint1">學生請在此處簽名</div>
+    </div>
+    <!-- 法定代理人簽名 -->
     <div class="sig-wrap">
       <div class="sig-label">
-        <span id="sigLabelName" style="font-size:13px"></span>
-        <button class="sig-clear" onclick="clearSig()">✕ 清除重簽</button>
+        <span id="sigLabelName">法定代理人簽名欄</span>
+        <button class="sig-clear" onclick="clearSig('sigCanvas2','sigHint2')">✕ 清除重簽</button>
       </div>
-      <canvas id="sigCanvas" width="760" height="200"></canvas>
-      <div class="sig-hint" id="sigHint">請在此處簽名</div>
+      <canvas id="sigCanvas2" width="760" height="160"></canvas>
+      <div class="sig-hint" id="sigHint2">法定代理人（家長）請在此處簽名</div>
     </div>
     <div class="date-line">簽署日期：<strong id="sigDate"></strong></div>
     <div class="btn-row">
@@ -247,7 +257,7 @@ canvas#sigCanvas{display:block;width:100%;height:200px;background:white;cursor:c
         <div style="text-align:center;padding-bottom:16px;border-bottom:2.5px double var(--ink);margin-bottom:18px">
           <div style="font-family:'Noto Serif TC',serif;font-size:13px;font-weight:700;letter-spacing:3px;color:var(--red);margin-bottom:4px">台北市私立源石學館文理語文短期補習班</div>
           <div style="font-family:'Noto Serif TC',serif;font-size:19px;font-weight:700;letter-spacing:5px;margin-bottom:3px">服務契約書</div>
-          <div style="font-size:11px;color:#888;letter-spacing:2px">核准字號：7027　｜　負責人：陳柏汎</div>
+          <div style="font-size:11px;color:#888;letter-spacing:2px">負責人：陳柏汎</div>
         </div>
         <!-- Contract full text -->
         <div id="confirmContractBody" style="font-size:13px;line-height:2;color:#333"></div>
@@ -261,10 +271,14 @@ canvas#sigCanvas{display:block;width:100%;height:200px;background:white;cursor:c
               <div style="font-size:10px;color:#999;letter-spacing:1px;margin-bottom:4px">甲方（學生及法定代理人）</div>
               <div style="font-size:13px;font-weight:600;margin-bottom:4px" id="confirm-parent-name"></div>
               <div style="font-size:11px;color:#888;margin-bottom:10px">學生：<span id="confirm-student-name"></span></div>
-              <div style="font-size:10px;color:#999;margin-bottom:4px">簽名人：<span id="confirm-signer-name" style="color:var(--ink);font-weight:600"></span></div>
-              <div style="font-size:10px;color:#999;margin-bottom:6px">親筆簽名：</div>
-              <div style="border:1px solid var(--line);background:#fafafa;padding:8px;min-height:90px;display:flex;align-items:center">
-                <img id="sigPreview" src="" alt="簽名預覽" style="max-height:80px;max-width:100%;object-fit:contain;display:block">
+              <div style="font-size:10px;color:#999;margin-bottom:6px">學生簽名：</div>
+              <div style="border:1px solid var(--line);background:#fafafa;padding:6px;min-height:70px;display:flex;align-items:center;margin-bottom:10px">
+                <img id="sigPreview1" src="" alt="學生簽名" style="max-height:60px;max-width:100%;object-fit:contain;display:block">
+              </div>
+              <div style="font-size:10px;color:#999;margin-bottom:4px">法定代理人：<span id="confirm-signer-name" style="color:var(--ink);font-weight:600"></span></div>
+              <div style="font-size:10px;color:#999;margin-bottom:6px">法定代理人簽名：</div>
+              <div style="border:1px solid var(--line);background:#fafafa;padding:6px;min-height:70px;display:flex;align-items:center">
+                <img id="sigPreview" src="" alt="法定代理人簽名" style="max-height:60px;max-width:100%;object-fit:contain;display:block">
               </div>
             </div>
             <!-- 乙方 -->
@@ -280,7 +294,7 @@ canvas#sigCanvas{display:block;width:100%;height:200px;background:white;cursor:c
             </div>
           </div>
           <div style="padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
-            <div style="font-size:11px;color:#888">本契約一式二份，甲乙雙方各執一份，自簽約日起生效。</div>
+
             <div style="font-size:11px;color:#888">簽署日期：<strong id="confirm-date"></strong></div>
           </div>
         </div>
@@ -392,7 +406,7 @@ function buildContract(){
     <div class="cp">乙方有下列情形之一者，甲方得終止契約，並要求乙方退費：</div>
     <div class="col"><ol><li>無正當事由，變更原訂課程、科目、時數、上課地點或更換教學人員超過三分之一人數者，乙方應依甲方已繳金額加百分之三十退還。</li><li>乙方申請停辦，或經主管機關停止招生或廢止設立者，應按賸餘課程時數比例退還當期已繳費用。</li><li>教室被政府機關列為危險建築物勒令停止使用者，依尚未上課時數核算應退還費用。</li></ol></div>
     <div class="art">十七、附件效力及契約分存</div>
-    <div class="cp">本契約之附件及相關廣告視為本契約之一部分。本契約一式二份，由甲乙雙方各執一份，自簽約日起生效。契約保存期限為五年（不得少於稅捐稽徵期限所定五年）。</div>
+    <div class="cp">本契約之附件及相關廣告視為本契約之一部分，具有同等效力。契約保存期限為五年。</div>
     <div class="art">十八、未盡事宜</div>
     <div class="cp">本契約如有未盡事宜，依相關法令、習慣及誠實信用原則公平解決之。</div>
     <div class="dv"></div>
@@ -434,7 +448,7 @@ if(D){
     D.studentPhone=phone; D.studentAddr=addr; D.parentName=parent; D.parentPhone=parentphone;
     // Show signer name on signature panel
     const lbl=document.getElementById('sigLabelName');
-    if(lbl) lbl.textContent=(parent||D.studentName||'') + ' 簽名區';
+    if(lbl) lbl.textContent='法定代理人：'+(parent||'') + ' 簽名欄';
     // update display in contract body
     const dp=document.getElementById('disp-phone'); if(dp) dp.textContent=phone;
     const da=document.getElementById('disp-addr'); if(da) da.textContent=addr;
@@ -444,32 +458,55 @@ if(D){
   });
 }
 
-// Canvas
-const canvas=document.getElementById('sigCanvas');
-const ctx=canvas?canvas.getContext('2d'):null;
-let drawing=false,hasSig=false;
+// Canvas - two signature pads
+let hasSig1=false, hasSig2=false;
 
-function setupCanvas(){
-  if(!canvas)return;
-  const ratio=window.devicePixelRatio||1;
-  const rect=canvas.getBoundingClientRect();
-  canvas.width=rect.width*ratio;canvas.height=rect.height*ratio;
-  ctx.scale(ratio,ratio);
-  ctx.strokeStyle='#1a1a2e';ctx.lineWidth=2.3;ctx.lineCap='round';ctx.lineJoin='round';
+function makeCanvas(id, hintId){
+  const cv=document.getElementById(id);
+  if(!cv) return null;
+  const cx=cv.getContext('2d');
+  let drawing=false;
+  function setup(){
+    const ratio=window.devicePixelRatio||1;
+    const rect=cv.getBoundingClientRect();
+    cv.width=rect.width*ratio; cv.height=rect.height*ratio;
+    cx.scale(ratio,ratio);
+    cx.strokeStyle='#1a1a2e'; cx.lineWidth=2.3; cx.lineCap='round'; cx.lineJoin='round';
+  }
+  setup(); window.addEventListener('resize',setup);
+  function getPos(e){const r=cv.getBoundingClientRect();const s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
+  function onDraw(){
+    document.getElementById(hintId).style.display='none';
+    if(id==='sigCanvas1') hasSig1=true; else hasSig2=true;
+    checkBothSigned();
+  }
+  cv.addEventListener('mousedown',e=>{drawing=true;const p=getPos(e);cx.beginPath();cx.moveTo(p.x,p.y);});
+  cv.addEventListener('mousemove',e=>{if(!drawing)return;const p=getPos(e);cx.lineTo(p.x,p.y);cx.stroke();onDraw();});
+  cv.addEventListener('mouseup',()=>drawing=false);
+  cv.addEventListener('mouseleave',()=>drawing=false);
+  cv.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const p=getPos(e);cx.beginPath();cx.moveTo(p.x,p.y);},{passive:false});
+  cv.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;const p=getPos(e);cx.lineTo(p.x,p.y);cx.stroke();onDraw();},{passive:false});
+  cv.addEventListener('touchend',()=>drawing=false);
+  return {cv, cx, setup};
 }
-if(canvas){setupCanvas();window.addEventListener('resize',setupCanvas);}
-function getPos(e){const r=canvas.getBoundingClientRect();const s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
-if(canvas){
-  canvas.addEventListener('mousedown',e=>{drawing=true;const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);});
-  canvas.addEventListener('mousemove',e=>{if(!drawing)return;const p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();onDraw();});
-  canvas.addEventListener('mouseup',()=>drawing=false);
-  canvas.addEventListener('mouseleave',()=>drawing=false);
-  canvas.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);},{passive:false});
-  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;const p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();onDraw();},{passive:false});
-  canvas.addEventListener('touchend',()=>drawing=false);
+
+const pad1=makeCanvas('sigCanvas1','sigHint1');
+const pad2=makeCanvas('sigCanvas2','sigHint2');
+
+function checkBothSigned(){
+  document.getElementById('toPreviewBtn').disabled=!(hasSig1&&hasSig2);
 }
-function onDraw(){hasSig=true;document.getElementById('sigHint').style.display='none';document.getElementById('toPreviewBtn').disabled=false;}
-function clearSig(){if(!canvas)return;const r=window.devicePixelRatio||1;ctx.clearRect(0,0,canvas.width/r,canvas.height/r);hasSig=false;document.getElementById('sigHint').style.display='block';document.getElementById('toPreviewBtn').disabled=true;}
+
+function clearSig(canvasId, hintId){
+  const cv=document.getElementById(canvasId);
+  const cx=cv?cv.getContext('2d'):null;
+  if(!cv||!cx) return;
+  const r=window.devicePixelRatio||1;
+  cx.clearRect(0,0,cv.width/r,cv.height/r);
+  document.getElementById(hintId).style.display='block';
+  if(canvasId==='sigCanvas1') hasSig1=false; else hasSig2=false;
+  checkBothSigned();
+}
 
 const today=new Date();
 const dateStr=today.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'});
@@ -479,8 +516,12 @@ const tpb=document.getElementById('toPreviewBtn');
 if(tpb) tpb.addEventListener('click',()=>{
   if(!D)return;
   const total=parseInt(D.totalFee||0);
-  // Capture signature BEFORE panel change (canvas still accessible)
-  signatureDataUrl=canvas.toDataURL('image/png');
+  // Capture both signatures BEFORE panel change
+  const cv1=document.getElementById('sigCanvas1');
+  const cv2=document.getElementById('sigCanvas2');
+  studentSigUrl=cv1?cv1.toDataURL('image/png'):'';
+  signatureDataUrl=cv2?cv2.toDataURL('image/png'):'';
+  document.getElementById('sigPreview1').src=studentSigUrl;
   document.getElementById('sigPreview').src=signatureDataUrl;
   // Set names and date in confirm panel
   const pn=document.getElementById('confirm-parent-name');
@@ -545,7 +586,7 @@ if(tpb) tpb.addEventListener('click',()=>{
     <div class="cp">乙方有下列情形之一者，甲方得終止契約，並要求乙方退費：</div>
     <div class="col"><ol><li>無正當事由，變更課程、科目、時數、地點或更換超過三分之一師資者，乙方應依甲方已繳金額加百分之三十退還。</li><li>乙方申請停辦或被主管機關廢止者，按賸餘時數比例退還費用。</li><li>教室列危險建築物勒令停用者，依尚未上課時數退還費用。</li></ol></div>
     <div class="art">十七、附件效力及契約分存</div>
-    <div class="cp">本契約一式二份，甲乙雙方各執一份，自簽約日起生效，保存期限五年。</div>
+    <div class="cp">本契約之附件及相關廣告視為本契約之一部分，具有同等效力。契約保存期限為五年。</div>
     <div class="art">十八、未盡事宜</div>
     <div class="cp">本契約如有未盡事宜，依相關法令、習慣及誠實信用原則公平解決之。</div>
     <div class="dv"></div>
@@ -560,7 +601,7 @@ if(tpb) tpb.addEventListener('click',()=>{
   goToPanel(3);
 });
 
-let signatureDataUrl='';
+let signatureDataUrl='', studentSigUrl='';
 
 // Compress signature canvas to small JPEG for storage
 function compressSig(dataUrl,maxW=600,quality=0.7){
@@ -587,6 +628,7 @@ async function submitContract(){
   try{
     // Compress signature before saving (reduces from ~200KB to ~15KB)
     const compressedSig=await compressSig(signatureDataUrl);
+    const compressedStudentSig=studentSigUrl?await compressSig(studentSigUrl):'';
 
     const payload={
       student_name:D.studentName,student_phone:D.studentPhone,student_addr:D.studentAddr||'',
@@ -595,6 +637,7 @@ async function submitContract(){
       fee_tuition:D.feeTuition||'0',fee_material:D.feeMaterial||'0',fee_other:D.feeOther||'0',
       total_fee:parseInt(D.totalFee||0),pay_method:D.payMethod||'',
       signature_url:compressedSig,
+      student_signature_url:compressedStudentSig,
       signed_at:new Date().toISOString(),
       status:'signed',
       contract_data:JSON.stringify(D)
@@ -714,7 +757,7 @@ function exportPDF(){
     <div class="pdf-ol"><ol><li>無正當事由，變更課程、科目、時數、地點或更換超過三分之一師資者，乙方應依甲方已繳金額加百分之三十退還。</li><li>乙方申請停辦或被主管機關廢止者，按賸餘時數比例退還費用。</li><li>教室列危險建築物勒令停用者，依尚未上課時數退還費用。</li></ol></div></div>
 
     <div class="pdf-block"><div class="pdf-art">十七、附件效力及契約分存</div>
-    <div class="pdf-p">本契約一式二份，甲乙雙方各執一份，自簽約日起生效，保存期限五年。</div></div>
+    <div class="pdf-p">本契約各附件視為契約之一部分，具有同等效力。保存期限五年。</div></div>
 
     <div class="pdf-block"><div class="pdf-art">十八、未盡事宜</div>
     <div class="pdf-p">本契約如有未盡事宜，依相關法令、習慣及誠實信用原則公平解決之。</div></div>
@@ -757,13 +800,13 @@ function exportPDF(){
         </div>
       </div>
       <div style="padding-top:8pt;border-top:1pt solid #ddd;display:flex;justify-content:space-between;font-size:8.5pt;color:#888">
-        <div>本契約一式二份，甲乙雙方各執一份，自簽約日起生效。</div>
+
         <div>簽署日期：${dateStr}</div>
       </div>
     </div>
 
     <div style="margin-top:14pt;padding-top:8pt;border-top:1pt solid #ccc;font-size:8pt;color:#888;text-align:center;line-height:1.9">
-      台北市私立源石學館文理語文短期補習班　｜　核准字號：7027　｜　地址：台北市南京東路四段133巷7弄36號　｜　電話：02-2713-8159
+      台北市私立源石學館文理語文短期補習班　｜　地址：台北市南京東路四段133巷7弄36號　｜　電話：02-2713-8159
     </div>`;
 
   document.getElementById('pdfTemplate').style.display='block';
