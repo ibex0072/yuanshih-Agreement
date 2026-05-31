@@ -453,6 +453,7 @@ if(D){
     const lbl=document.getElementById('sigLabelName');
     if(lbl) lbl.textContent='法定代理人：'+parent+' 簽名欄';
     goToPanel(2);
+    setTimeout(setupCanvases, 50);
   });
 }
 
@@ -475,8 +476,18 @@ function makeCanvas(id, hintId){
   function getPos(e){const r=cv.getBoundingClientRect();const s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
   function onDraw(){
     document.getElementById(hintId).style.display='none';
-    if(id==='sigCanvas1'){ hasSig1=true; window._sig1=cv.toDataURL('image/jpeg',0.85); }
-    else { hasSig2=true; window._sig2=cv.toDataURL('image/jpeg',0.85); }
+    if(id==='sigCanvas1'){
+      hasSig1=true;
+      const tmp1=document.createElement('canvas'); tmp1.width=cv.width; tmp1.height=cv.height;
+      const tx1=tmp1.getContext('2d'); tx1.fillStyle='white'; tx1.fillRect(0,0,tmp1.width,tmp1.height); tx1.drawImage(cv,0,0);
+      window._sig1=tmp1.toDataURL('image/png');
+    }
+    else {
+      hasSig2=true;
+      const tmp2=document.createElement('canvas'); tmp2.width=cv.width; tmp2.height=cv.height;
+      const tx2=tmp2.getContext('2d'); tx2.fillStyle='white'; tx2.fillRect(0,0,tmp2.width,tmp2.height); tx2.drawImage(cv,0,0);
+      window._sig2=tmp2.toDataURL('image/png');
+    }
     checkBothSigned();
   }
   cv.addEventListener('mousedown',e=>{drawing=true;const p=getPos(e);cx.beginPath();cx.moveTo(p.x,p.y);});
@@ -491,6 +502,12 @@ function makeCanvas(id, hintId){
 
 const pad1=makeCanvas('sigCanvas1','sigHint1');
 const pad2=makeCanvas('sigCanvas2','sigHint2');
+
+// Re-setup canvases when panel2 becomes visible
+function setupCanvases(){
+  if(pad1&&pad1.setup) pad1.setup();
+  if(pad2&&pad2.setup) pad2.setup();
+}
 
 function checkBothSigned(){
   document.getElementById('toPreviewBtn').disabled=!(hasSig1&&hasSig2);
@@ -781,7 +798,11 @@ function exportPDF(){
           <div style="font-size:8.5pt;color:#888;margin-bottom:3pt">甲方（學生及法定代理人）</div>
           <div style="font-size:10pt;font-weight:700;margin-bottom:2pt">${D.parentName}</div>
           <div style="font-size:8.5pt;color:#888;margin-bottom:8pt">學生：${D.studentName}</div>
-          <div style="font-size:8pt;color:#888;margin-bottom:4pt">法定代理人親筆簽名：</div>
+          <div style="font-size:8pt;color:#888;margin-bottom:4pt">學生簽名：</div>
+<div style="border:1pt solid #ddd;background:#fafafa;padding:4pt;min-height:45pt;display:flex;align-items:center;margin-bottom:8pt">
+  <img src="${studentSigUrl}" style="max-height:45pt;max-width:150pt;object-fit:contain">
+</div>
+          <div style="font-size:8pt;color:#888;margin-bottom:4pt">法定代理人簽名：</div>
           <div style="border:1pt solid #ddd;background:#fafafa;padding:4pt;min-height:45pt;display:flex;align-items:center">
             <img src="${signatureDataUrl}" style="max-height:45pt;max-width:150pt;object-fit:contain">
           </div>
