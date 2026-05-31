@@ -181,6 +181,29 @@ canvas#sigCanvas,canvas#sigCanvas1,canvas#sigCanvas2{display:block;width:100%;he
     </div>
     <div class="contract-scroll" id="contractBody"></div>
 
+    <!-- 家長填寫資料區 -->
+    <div style="margin:16px 0;padding:16px 20px;background:var(--cream);border:1.5px solid var(--gold);border-radius:2px">
+      <div style="font-size:12px;font-weight:700;color:var(--red);letter-spacing:1px;margin-bottom:12px">📝 請填寫以下資料</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 16px">
+        <div style="grid-column:1/-1">
+          <label style="font-size:11px;color:#888;display:block;margin-bottom:3px">學生地址 <span style="color:var(--red)">*</span></label>
+          <input id="inp-addr" type="text" placeholder="請填寫通訊地址" style="width:100%;box-sizing:border-box;border:1px solid var(--line);padding:7px 10px;font-size:12.5px;font-family:inherit;background:white;border-radius:2px">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#888;display:block;margin-bottom:3px">法定代理人姓名 <span style="color:var(--red)">*</span></label>
+          <input id="inp-parent" type="text" placeholder="請填寫家長姓名" style="width:100%;box-sizing:border-box;border:1px solid var(--line);padding:7px 10px;font-size:12.5px;font-family:inherit;background:white;border-radius:2px">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#888;display:block;margin-bottom:3px">法定代理人電話 <span style="color:var(--red)">*</span></label>
+          <input id="inp-parentphone" type="tel" placeholder="例：0912345678" style="width:100%;box-sizing:border-box;border:1px solid var(--line);padding:7px 10px;font-size:12.5px;font-family:inherit;background:white;border-radius:2px">
+        </div>
+        <div style="grid-column:1/-1">
+          <label style="font-size:11px;color:#888;display:block;margin-bottom:3px">學生聯絡電話 <span style="color:#aaa">（選填）</span></label>
+          <input id="inp-phone" type="tel" placeholder="例：0912345678" style="width:100%;box-sizing:border-box;border:1px solid var(--line);padding:7px 10px;font-size:12.5px;font-family:inherit;background:white;border-radius:2px">
+        </div>
+      </div>
+    </div>
+
     <div class="read-bar">
       <input type="checkbox" id="readCheck">
       <label for="readCheck">本人已詳細閱讀以上所有服務契約條款（含退費標準），確認了解並同意遵守本契約之全部規定。</label>
@@ -332,8 +355,8 @@ function buildContract(){
     <div class="art">一、立約人</div>
     <div class="party-box">
       <strong>甲方（學生）：${D.studentName}</strong>${D.studentPhone?`　聯絡電話：${D.studentPhone}`:''}<br>
-      地址：${D.studentAddr||''}<br>
-      法定代理人：<strong>${D.parentName||''}</strong>　電話：${D.parentPhone||''}
+      地址：<span id="disp-addr">${D.studentAddr||''}</span><br>
+      法定代理人：<strong id="disp-parent">${D.parentName||''}</strong>　電話：<span id="disp-parentphone">${D.parentPhone||''}</span>
     </div>
     <div class="cp" style="font-size:11.5px;color:#888">甲方為限制行為能力人時，須得法定代理人允許或承認，契約始為有效。甲方為無行為能力人時，應由其法定代理人代為或代受意思表示。</div>
     <div class="cp"><strong>乙方：</strong>台北市私立源石學館文理語文短期補習班（核准字號：7027）<br>負責人：陳柏汎　｜　電話：02-2713-8159　｜　地址：台北市南京東路四段133巷7弄36號</div>
@@ -413,8 +436,22 @@ if(D){
   const tsb=document.getElementById('toSigBtn');
   if(rc&&tsb) rc.addEventListener('change',()=>tsb.disabled=!rc.checked);
   if(tsb) tsb.addEventListener('click',()=>{
+    const addr=(document.getElementById('inp-addr')||{}).value?.trim()||'';
+    const parent=(document.getElementById('inp-parent')||{}).value?.trim()||'';
+    const parentphone=(document.getElementById('inp-parentphone')||{}).value?.trim()||'';
+    const phone=(document.getElementById('inp-phone')||{}).value?.trim()||'';
+    if(!addr||!parent||!parentphone){
+      alert('請填寫必填資料：學生地址、法定代理人姓名及電話');
+      return;
+    }
+    D.studentAddr=addr; D.parentName=parent; D.parentPhone=parentphone;
+    if(phone) D.studentPhone=phone;
+    // Update party box in contract view
+    const elAddr=document.getElementById('disp-addr'); if(elAddr) elAddr.textContent=addr;
+    const elPar=document.getElementById('disp-parent'); if(elPar) elPar.textContent=parent;
+    const elPph=document.getElementById('disp-parentphone'); if(elPph) elPph.textContent=parentphone;
     const lbl=document.getElementById('sigLabelName');
-    if(lbl) lbl.textContent='法定代理人：'+(D.parentName||'') + ' 簽名欄';
+    if(lbl) lbl.textContent='法定代理人：'+parent+' 簽名欄';
     goToPanel(2);
   });
 }
@@ -497,8 +534,8 @@ if(tpb) tpb.addEventListener('click',()=>{
     <div class="art">一、立約人</div>
     <div class="party-box">
       <strong>甲方（學生）：${D.studentName}</strong>${D.studentPhone?`　聯絡電話：${D.studentPhone}`:''}<br>
-      地址：${D.studentAddr||''}<br>
-      法定代理人：<strong>${D.parentName||''}</strong>　電話：${D.parentPhone||''}
+      地址：<span id="disp-addr">${D.studentAddr||''}</span><br>
+      法定代理人：<strong id="disp-parent">${D.parentName||''}</strong>　電話：<span id="disp-parentphone">${D.parentPhone||''}</span>
     </div>
     <div class="cp" style="font-size:11.5px;color:#888">甲方為限制行為能力人時，須得法定代理人允許或承認，契約始為有效。甲方為無行為能力人時，應由其法定代理人代為或代受意思表示。</div>
     <div class="cp"><strong>乙方：</strong>台北市私立源石學館文理語文短期補習班（核准字號：7027）｜負責人：陳柏汎　｜　電話：02-2713-8159</div>
