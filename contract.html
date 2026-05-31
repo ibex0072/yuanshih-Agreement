@@ -475,7 +475,8 @@ function makeCanvas(id, hintId){
   function getPos(e){const r=cv.getBoundingClientRect();const s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
   function onDraw(){
     document.getElementById(hintId).style.display='none';
-    if(id==='sigCanvas1') hasSig1=true; else hasSig2=true;
+    if(id==='sigCanvas1'){ hasSig1=true; window._sig1=cv.toDataURL('image/jpeg',0.85); }
+    else { hasSig2=true; window._sig2=cv.toDataURL('image/jpeg',0.85); }
     checkBothSigned();
   }
   cv.addEventListener('mousedown',e=>{drawing=true;const p=getPos(e);cx.beginPath();cx.moveTo(p.x,p.y);});
@@ -502,7 +503,8 @@ function clearSig(canvasId, hintId){
   const r=window.devicePixelRatio||1;
   cx.clearRect(0,0,cv.width/r,cv.height/r);
   document.getElementById(hintId).style.display='block';
-  if(canvasId==='sigCanvas1') hasSig1=false; else hasSig2=false;
+  if(canvasId==='sigCanvas1'){ hasSig1=false; window._sig1=''; }
+  else { hasSig2=false; window._sig2=''; }
   checkBothSigned();
 }
 
@@ -514,13 +516,13 @@ const tpb=document.getElementById('toPreviewBtn');
 if(tpb) tpb.addEventListener('click',()=>{
   if(!D)return;
   const total=parseInt(D.totalFee||0);
-  // Capture both signatures BEFORE panel change
-  const cv1=document.getElementById('sigCanvas1');
-  const cv2=document.getElementById('sigCanvas2');
-  studentSigUrl=cv1?cv1.toDataURL('image/png'):'';
-  signatureDataUrl=cv2?cv2.toDataURL('image/png'):'';
-  document.getElementById('sigPreview1').src=studentSigUrl;
-  document.getElementById('sigPreview').src=signatureDataUrl;
+  // Use saved dataURLs (saved on each stroke to survive canvas resize)
+  studentSigUrl=window._sig1||'';
+  signatureDataUrl=window._sig2||'';
+  const sp1=document.getElementById('sigPreview1');
+  const sp2=document.getElementById('sigPreview');
+  if(sp1) sp1.src=studentSigUrl;
+  if(sp2) sp2.src=signatureDataUrl;
   // Set names and date in confirm panel
   const pn=document.getElementById('confirm-parent-name');
   const sn=document.getElementById('confirm-student-name');
