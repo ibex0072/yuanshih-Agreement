@@ -406,13 +406,14 @@ function viewContract(id){
       <div class="preview-sig-title">立　約　人　簽　署</div>
       <div class="preview-sig-grid">
         <div class="preview-sig-col">
-          <div class="preview-sig-label">甲方（學生及法定代理人）：${c.parent_name||'—'}</div>
-          <div style="font-size:11px;color:#888;margin-bottom:4px">學生：${c.student_name||'—'}</div>
+          <div class="preview-sig-label" style="font-weight:700">甲方</div>
+          <div style="font-size:11px;color:#444;margin-bottom:2px">學生：${c.student_name||'—'}</div>
+          <div style="font-size:11px;color:#444;margin-bottom:10px">法定代理人：${c.parent_name||'—'}</div>
           <div style="font-size:10px;color:#888;margin-bottom:4px">學生簽名：</div>
           ${signed&&c.student_signature_url
             ?`<img class="preview-sig-img" src="${c.student_signature_url}" alt="學生簽名">`
             :`<div style="border:1px dashed #ccc;height:50px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#ccc">尚未簽署</div>`}
-          <div style="font-size:10px;color:#888;margin:8px 0 4px">法定代理人簽名：</div>
+          <div style="font-size:10px;color:#888;margin:10px 0 4px">法定代理人：</div>
           ${signed&&c.signature_url
             ?`<img class="preview-sig-img" src="${c.signature_url}" alt="法定代理人簽名">`
             :`<div style="border:1px dashed #ccc;height:50px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#ccc">尚未簽署</div>`}
