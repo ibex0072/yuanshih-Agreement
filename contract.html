@@ -704,6 +704,9 @@ async function submitContract(){
 function exportPDF(){
   if(!D)return;
   const total=parseInt(D.totalFee||0);
+  // 若是管理員從後台下載，studentSigUrl 從 D 物件取出
+  if(!studentSigUrl && D.student_signature_url) studentSigUrl=D.student_signature_url;
+  if(!signatureDataUrl && D.signature_url) signatureDataUrl=D.signature_url;
   document.getElementById('pdfContent').innerHTML=`
     <div class="pdf-header">
       <div class="pdf-school">台北市私立源石學館文理語文短期補習班</div>
