@@ -268,14 +268,13 @@ canvas#sigCanvas,canvas#sigCanvas1,canvas#sigCanvas2{display:block;width:100%;he
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:14px">
             <!-- 甲方 -->
             <div style="border-right:1px solid var(--line);padding-right:20px">
-              <div style="font-size:10px;color:#999;letter-spacing:1px;margin-bottom:4px">甲方（學生及法定代理人）</div>
-              <div style="font-size:13px;font-weight:600;margin-bottom:4px" id="confirm-parent-name"></div>
-              <div style="font-size:11px;color:#888;margin-bottom:10px">學生：<span id="confirm-student-name"></span></div>
+              <div style="font-size:10px;color:#999;letter-spacing:1px;margin-bottom:8px">甲方（學生及法定代理人）</div>
+              <div style="font-size:12px;color:#555;margin-bottom:2px">學生：<span id="confirm-student-name" style="color:var(--ink);font-weight:600"></span></div>
+              <div style="font-size:12px;color:#555;margin-bottom:14px">法定代理人：<span id="confirm-parent-name" style="color:var(--ink);font-weight:600"></span></div>
               <div style="font-size:10px;color:#999;margin-bottom:6px">學生簽名：</div>
-              <div style="border:1px solid var(--line);background:#fafafa;padding:6px;min-height:70px;display:flex;align-items:center;margin-bottom:10px">
+              <div style="border:1px solid var(--line);background:#fafafa;padding:6px;min-height:70px;display:flex;align-items:center;margin-bottom:12px">
                 <img id="sigPreview1" src="" alt="學生簽名" style="max-height:60px;max-width:100%;object-fit:contain;display:block">
               </div>
-              <div style="font-size:10px;color:#999;margin-bottom:4px">法定代理人：<span id="confirm-signer-name" style="color:var(--ink);font-weight:600"></span></div>
               <div style="font-size:10px;color:#999;margin-bottom:6px">法定代理人簽名：</div>
               <div style="border:1px solid var(--line);background:#fafafa;padding:6px;min-height:70px;display:flex;align-items:center">
                 <img id="sigPreview" src="" alt="法定代理人簽名" style="max-height:60px;max-width:100%;object-fit:contain;display:block">
@@ -544,8 +543,8 @@ if(tpb) tpb.addEventListener('click',()=>{
   const pn=document.getElementById('confirm-parent-name');
   const sn=document.getElementById('confirm-student-name');
   const cd=document.getElementById('confirm-date');
-  if(pn) pn.textContent=D.parentName||'—';
   if(sn) sn.textContent=D.studentName||'—';
+  if(pn) pn.textContent=D.parentName||'—';
   if(cd) cd.textContent=dateStr;
   // Build full contract in confirm panel
   const cb=document.getElementById('confirmContractBody');
@@ -704,9 +703,6 @@ async function submitContract(){
 function exportPDF(){
   if(!D)return;
   const total=parseInt(D.totalFee||0);
-  // 若是管理員從後台下載，studentSigUrl 從 D 物件取出
-  if(!studentSigUrl && D.student_signature_url) studentSigUrl=D.student_signature_url;
-  if(!signatureDataUrl && D.signature_url) signatureDataUrl=D.signature_url;
   document.getElementById('pdfContent').innerHTML=`
     <div class="pdf-header">
       <div class="pdf-school">台北市私立源石學館文理語文短期補習班</div>
@@ -798,16 +794,18 @@ function exportPDF(){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16pt;margin-bottom:10pt">
         <!-- 甲方 -->
         <div style="border-right:1pt solid #ddd;padding-right:14pt">
-          <div style="font-size:8.5pt;color:#888;margin-bottom:3pt">甲方（學生及法定代理人）</div>
-          <div style="font-size:10pt;font-weight:700;margin-bottom:2pt">${D.parentName}</div>
-          <div style="font-size:8.5pt;color:#888;margin-bottom:8pt">學生：${D.studentName}</div>
-          <div style="font-size:8pt;color:#888;margin-bottom:4pt">學生簽名：</div>
-<div style="border:1pt solid #ddd;background:#fafafa;padding:4pt;min-height:45pt;display:flex;align-items:center;margin-bottom:8pt">
-  <img src="${studentSigUrl}" style="max-height:45pt;max-width:150pt;object-fit:contain">
-</div>
-          <div style="font-size:8pt;color:#888;margin-bottom:4pt">法定代理人簽名：</div>
-          <div style="border:1pt solid #ddd;background:#fafafa;padding:4pt;min-height:45pt;display:flex;align-items:center">
-            <img src="${signatureDataUrl}" style="max-height:45pt;max-width:150pt;object-fit:contain">
+        <!-- 甲方 -->
+        <div style="border-right:1pt solid #ddd;padding-right:14pt">
+          <div style="font-size:8.5pt;color:#888;margin-bottom:5pt">甲方（學生及法定代理人）</div>
+          <div style="font-size:9pt;color:#555;margin-bottom:2pt">學生：<strong>${D.studentName}</strong></div>
+          <div style="font-size:9pt;color:#555;margin-bottom:10pt">法定代理人：<strong>${D.parentName}</strong></div>
+          <div style="font-size:8pt;color:#888;margin-bottom:3pt">學生簽名：</div>
+          <div style="border:1pt solid #ddd;background:#fafafa;padding:4pt;min-height:40pt;display:flex;align-items:center;margin-bottom:8pt">
+            <img src="${studentSigUrl}" style="max-height:40pt;max-width:150pt;object-fit:contain">
+          </div>
+          <div style="font-size:8pt;color:#888;margin-bottom:3pt">法定代理人簽名：<span style="font-size:7.5pt;color:#aaa">（甲方未成年者，應經法定代理人簽名）</span></div>
+          <div style="border:1pt solid #ddd;background:#fafafa;padding:4pt;min-height:40pt;display:flex;align-items:center">
+            <img src="${signatureDataUrl}" style="max-height:40pt;max-width:150pt;object-fit:contain">
           </div>
         </div>
         <!-- 乙方 -->
