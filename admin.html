@@ -201,19 +201,19 @@ const API_URL='https://script.google.com/macros/s/AKfycbxr_5tj46KOkksLPy-MTStsg0
 
 // Google Sheets API helpers
 async function apiGet(){
-  const res=await fetch(`${API_URL}?action=list`);
+  const res=await fetch(`${API_URL}?action=list`,{redirect:'follow'});
   const j=await res.json();
   if(!j.ok) throw new Error(j.error);
   return j.data;
 }
 async function apiInsert(data){
-  const res=await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'insert',data})});
+  const res=await fetch(API_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'insert',data})});
   const j=await res.json();
   if(!j.ok) throw new Error(j.error);
   return j.data;
 }
 async function apiUpdate(id,data){
-  const res=await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'update',id,data})});
+  const res=await fetch(API_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'update',id,data})});
   const j=await res.json();
   if(!j.ok) throw new Error(j.error);
   return j.data;
