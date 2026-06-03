@@ -198,6 +198,11 @@ canvas#sigCanvas,canvas#sigCanvas1,canvas#sigCanvas2{display:block;width:100%;he
           <input id="inp-parentphone" type="tel" placeholder="例：0912345678" style="width:100%;box-sizing:border-box;border:1px solid var(--line);padding:7px 10px;font-size:12.5px;font-family:inherit;background:white;border-radius:2px">
         </div>
         <div style="grid-column:1/-1">
+          <label style="font-size:11px;color:#888;display:block;margin-bottom:3px">法定代理人 Email <span style="color:var(--red)">*</span></label>
+          <input id="inp-email" type="email" placeholder="例：parent@email.com" style="width:100%;box-sizing:border-box;border:1px solid var(--line);padding:7px 10px;font-size:12.5px;font-family:inherit;background:white;border-radius:2px">
+          <div style="font-size:10.5px;color:#aaa;margin-top:3px">補習班將把合約 PDF 寄送至此信箱</div>
+        </div>
+        <div style="grid-column:1/-1">
           <label style="font-size:11px;color:#888;display:block;margin-bottom:3px">學生聯絡電話 <span style="color:#aaa">（選填）</span></label>
           <input id="inp-phone" type="tel" placeholder="例：0912345678" style="width:100%;box-sizing:border-box;border:1px solid var(--line);padding:7px 10px;font-size:12.5px;font-family:inherit;background:white;border-radius:2px">
         </div>
@@ -438,12 +443,17 @@ if(D){
     const addr=(document.getElementById('inp-addr')||{}).value?.trim()||'';
     const parent=(document.getElementById('inp-parent')||{}).value?.trim()||'';
     const parentphone=(document.getElementById('inp-parentphone')||{}).value?.trim()||'';
+    const email=(document.getElementById('inp-email')||{}).value?.trim()||'';
     const phone=(document.getElementById('inp-phone')||{}).value?.trim()||'';
     if(!addr||!parent||!parentphone){
       alert('請填寫必填資料：學生地址、法定代理人姓名及電話');
       return;
     }
-    D.studentAddr=addr; D.parentName=parent; D.parentPhone=parentphone;
+    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      alert('請填寫有效的法定代理人 Email');
+      return;
+    }
+    D.studentAddr=addr; D.parentName=parent; D.parentPhone=parentphone; D.parentEmail=email;
     if(phone) D.studentPhone=phone;
     // Update party box in contract view
     const elAddr=document.getElementById('disp-addr'); if(elAddr) elAddr.textContent=addr;
@@ -647,7 +657,7 @@ async function submitContract(){
 
     const payload={
       student_name:D.studentName,student_phone:D.studentPhone,student_addr:D.studentAddr||'',
-      parent_name:D.parentName,parent_phone:D.parentPhone,
+      parent_name:D.parentName,parent_phone:D.parentPhone,parent_email:D.parentEmail||'',
       subject:D.subject,hours:D.hours||'',start_date:D.startDate||'',teacher:D.teacher||'',
       fee_tuition:D.feeTuition||'0',fee_material:D.feeMaterial||'0',fee_other:D.feeOther||'0',
       total_fee:parseInt(D.totalFee||0),pay_method:D.payMethod||'',
