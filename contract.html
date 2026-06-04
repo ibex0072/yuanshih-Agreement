@@ -334,7 +334,7 @@ try{
 }catch(e){}
 
 if(!D){
-  document.getElementById('mainWrap').innerHTML=`<div class="error-state"><div class="icon">⚠️</div><h3>無效的合約連結</h3><p>此連結已失效或格式錯誤。<br>請聯絡源石學館取得正確連結。<br><br>電話：02-2713-8159</p></div>`;
+  document.getElementById('mainWrap').innerHTML=`<div class="error-state"><div class="icon">⚠️</div><h3>無效的合約連結</h3><p>此連結已失效或格式錯誤。<br>請聯絡源石學館取得正確連結。</p></div>`;
 }else{
   buildContract();
   checkAlreadySigned();
@@ -346,7 +346,7 @@ async function checkAlreadySigned(){
   const j=await res.json();
   const data=j.ok?j.data:null;
   if(data&&data.status==='signed'){
-    document.getElementById('mainWrap').innerHTML=`<div class="error-state"><div class="icon">✅</div><h3>此合約已完成簽署</h3><p>簽署時間：${new Date(data.signed_at).toLocaleString('zh-TW')}<br>如需補印 PDF，請聯絡源石學館。<br><br>電話：02-2713-8159</p></div>`;
+    document.getElementById('mainWrap').innerHTML=`<div class="error-state"><div class="icon">✅</div><h3>此合約已完成簽署</h3><p>簽署時間：${new Date(data.signed_at).toLocaleString('zh-TW')}<br>如需補印 PDF，請聯絡源石學館。</p></div>`;
   }
 }
 
