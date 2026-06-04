@@ -95,6 +95,34 @@ body{font-family:'Noto Sans TC',sans-serif;background:#ddd8cc;min-height:100vh;p
 .preview-seal{flex:0 0 140px;text-align:center}
 .preview-footer{margin-top:12px;padding-top:8px;border-top:1px solid var(--line);font-size:10px;color:#aaa;text-align:center;line-height:1.9}
 @media(max-width:600px){.tab-content{padding:20px 16px}.grid,.grid.three,.expand-grid,.stats-row{grid-template-columns:1fr}.link-actions{flex-direction:column}}
+/* ── PDF TEMPLATE ── */
+#adminPdfWrap{display:none;position:absolute;left:-9999px;top:0}
+.pdf-wrap{width:190mm;font-family:'Noto Sans TC','Noto Serif TC',sans-serif;font-size:10pt;line-height:1.85;color:#111;background:white;padding:0}
+.pdf-header{text-align:center;padding-bottom:10pt;border-bottom:2pt double #111;margin-bottom:14pt}
+.pdf-school{font-size:11.5pt;font-weight:700;letter-spacing:2pt;color:#8b1a1a;margin-bottom:4pt}
+.pdf-title{font-size:18pt;font-weight:700;letter-spacing:4pt;margin-bottom:3pt}
+.pdf-no{font-size:8.5pt;color:#888;letter-spacing:1pt}
+.pdf-art{font-size:10.5pt;font-weight:700;margin:0;padding:8pt 0 4pt;letter-spacing:1pt;color:#1a1a2e;page-break-after:avoid;page-break-inside:avoid}
+.pdf-block{page-break-inside:avoid;margin-bottom:4pt}
+.pdf-p{margin-bottom:5pt;text-align:justify;page-break-inside:avoid}
+.pdf-ol{padding-left:16pt;margin-bottom:5pt;page-break-inside:avoid}
+.pdf-ol li{margin-bottom:3pt;page-break-inside:avoid}
+.pdf-hl{background:#fffbf0;border-left:3pt solid #b8963e;padding:5pt 9pt;margin:6pt 0;font-size:9pt;color:#7a5c10;page-break-inside:avoid}
+.pdf-party{background:#f5f2ec;padding:7pt 11pt;margin-bottom:7pt;font-size:9.5pt;line-height:1.9;page-break-inside:avoid}
+.pdf-amount{border-bottom:1pt solid #111;display:inline-block;min-width:55pt;text-align:center;font-weight:700;color:#8b1a1a}
+.pdf-dv{border:none;border-top:1pt solid #ccc;margin:10pt 0}
+.pdf-sig-section{margin-top:16pt;border:2pt solid #999;padding:12pt 16pt;page-break-inside:avoid}
+.pdf-sig-title{font-size:11pt;font-weight:700;letter-spacing:3pt;text-align:center;margin-bottom:14pt;padding-bottom:6pt;border-bottom:1pt solid #ddd;color:#1a1a2e}
+.pdf-sig-grid{display:flex;gap:16pt;align-items:flex-start}
+.pdf-sig-col{flex:1}
+.pdf-sig-col-label{font-size:8.5pt;color:#888;letter-spacing:1pt;margin-bottom:6pt}
+.pdf-sig-col-name{font-size:10pt;font-weight:600;margin-bottom:6pt}
+.pdf-sig-img-box{border:1pt solid #ddd;background:#fafafa;min-height:55pt;display:flex;align-items:center;justify-content:center;padding:4pt}
+.pdf-sig-img{max-height:55pt;max-width:140pt;object-fit:contain}
+.pdf-seal-col{flex:0 0 120pt;text-align:center}
+.pdf-sig-date{font-size:9pt;color:#666;text-align:right;margin-top:10pt;padding-top:8pt;border-top:1pt solid #eee}
+.pdf-footer{margin-top:14pt;padding-top:8pt;border-top:1pt solid #ccc;font-size:8pt;color:#888;text-align:center;line-height:1.9}
+.pdf-red{color:#8b1a1a}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
@@ -552,10 +580,10 @@ async function generatePdfBase64(c){
     <!-- 簽署區：用 table 排版確保 html2pdf 正確渲染 -->
     <div class="pdf-sig-section">
       <div class="pdf-sig-title">立　約　人　簽　署</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:10pt">
+      <table style="width:100%;border-collapse:separate;border-spacing:0;margin-bottom:10pt">
         <tr>
           <!-- 甲方 -->
-          <td style="width:50%;vertical-align:top;padding-right:14pt;border-right:1pt solid #ddd">
+          <td style="width:50%;vertical-align:top;padding-right:14pt;border-right:2pt solid #bbb">
             <div style="font-size:8.5pt;color:#888;margin-bottom:5pt">甲方（學生及法定代理人）</div>
             <div style="font-size:9pt;color:#555;margin-bottom:2pt">學生：<strong>${D.studentName||c.student_name}</strong></div>
             <div style="font-size:9pt;color:#555;margin-bottom:10pt">法定代理人：<strong>${D.parentName||c.parent_name}</strong></div>
@@ -651,6 +679,6 @@ async function runDiag(){
   }
 }
 </script>
-<div id="adminPdfWrap" style="display:none;position:absolute;left:-9999px;top:0"><div id="adminPdfContent"></div></div>
+<div id="adminPdfWrap"><div class="pdf-wrap" id="adminPdfContent"></div></div>
 </body>
 </html>
