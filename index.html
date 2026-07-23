@@ -2,10 +2,453 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="0; url=/admin.html">
-<title>源石學館合約系統</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>源石學館｜管理系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a2e;
+  --paper: #faf8f3;
+  --cream: #f0ece0;
+  --red: #8b1a1a;
+  --gold: #b8963e;
+  --gold-dim: rgba(184,150,62,0.15);
+  --line: #d4cfc4;
+  --sidebar-w: 220px;
+  --header-h: 56px;
+  --bg: #ddd8cc;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOP BAR ── */
+#topbar {
+  height: var(--header-h);
+  background: var(--ink);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  flex-shrink: 0;
+  z-index: 200;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+
+.school-mark {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.school-name {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 15px;
+  letter-spacing: 4px;
+  color: var(--paper);
+  line-height: 1;
+}
+
+.school-sub {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(250,248,243,0.45);
+}
+
+.topbar-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(250,248,243,0.15);
+}
+
+.topbar-badge {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  border: 1px solid rgba(184,150,62,0.4);
+  padding: 3px 10px;
+  border-radius: 2px;
+}
+
+/* ── LAYOUT ── */
+#layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: var(--sidebar-w);
+  background: var(--paper);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-section {
+  padding: 20px 0 8px;
+}
+
+.sidebar-section:not(:first-child) {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+
+.sidebar-label {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  padding: 0 18px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--gold-dim);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  font-size: 12.5px;
+  letter-spacing: 0.5px;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.18s;
+  border-left: 3px solid transparent;
+  user-select: none;
+}
+
+.nav-item:hover {
+  color: var(--ink);
+  background: var(--cream);
+}
+
+.nav-item.active {
+  color: var(--red);
+  background: rgba(139,26,26,0.06);
+  border-left-color: var(--red);
+  font-weight: 600;
+}
+
+.nav-icon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* ── SIDEBAR FOOTER ── */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px 18px;
+  border-top: 1px solid var(--line);
+}
+
+.sidebar-footer-text {
+  font-size: 9.5px;
+  color: #bbb;
+  letter-spacing: 1px;
+  line-height: 1.8;
+}
+
+/* ── IFRAME CONTAINER ── */
+#content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+iframe.sys-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  opacity: 0;
+  transition: opacity 0.25s;
+  background: var(--bg);
+}
+
+iframe.sys-frame.visible {
+  opacity: 1;
+}
+
+/* ── LOADING OVERLAY ── */
+#loading {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 10;
+  transition: opacity 0.3s;
+}
+
+#loading.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--line);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #aaa;
+}
+
+/* ── MOBILE TOGGLE ── */
+#mob-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  margin-left: auto;
+}
+
+.ham {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ham span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: rgba(250,248,243,0.7);
+  border-radius: 1px;
+}
+
+#sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 150;
+}
+
+@media (max-width: 720px) {
+  #mob-toggle { display: block; }
+  #sidebar {
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    bottom: 0;
+    z-index: 160;
+    transform: translateX(-100%);
+    transition: transform 0.25s;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+  }
+  #sidebar.open { transform: translateX(0); }
+  #sidebar-overlay.open { display: block; }
+}
+</style>
 </head>
 <body>
-<p>正在跳轉至管理頁面…</p>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="school-mark">
+    <div class="school-name">源石學館</div>
+    <div class="school-sub">文理語文短期補習班</div>
+  </div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-badge">管理系統</div>
+  <button id="mob-toggle" onclick="toggleSidebar()" aria-label="選單">
+    <div class="ham"><span></span><span></span><span></span></div>
+  </button>
+</div>
+
+<div id="layout">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">學費系統</div>
+      <div class="nav-item active" onclick="nav('tuition', this)">
+        <span class="nav-icon">💰</span>
+        <span>學費管理</span>
+      </div>
+      <div class="nav-item" onclick="nav('salary', this)">
+        <span class="nav-icon">💴</span>
+        <span>薪資單</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">排課系統</div>
+      <div class="nav-item" onclick="nav('schedule-dash', this)">
+        <span class="nav-icon">📊</span>
+        <span>排課總覽</span>
+      </div>
+      <div class="nav-item" onclick="nav('schedule-students', this)">
+        <span class="nav-icon">👤</span>
+        <span>學生管理</span>
+      </div>
+      <div class="nav-item" onclick="nav('schedule-result', this)">
+        <span class="nav-icon">📅</span>
+        <span>排課結果</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">合約系統</div>
+      <div class="nav-item" onclick="nav('contract-admin', this)">
+        <span class="nav-icon">📋</span>
+        <span>合約管理</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-text">
+        源石學館<br>
+        核准字號：7027<br>
+        台北市南京東路四段
+      </div>
+    </div>
+
+  </nav>
+
+  <!-- CONTENT -->
+  <div id="content">
+    <div id="loading">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">載入中</div>
+    </div>
+  </div>
+</div>
+
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<script>
+const frames = {};
+let current = null;
+
+const frameSrc = {
+  'tuition':           '學費.html',
+  'salary':            '學費.html',
+  'schedule-dash':     '排課.html',
+  'schedule-students': '排課.html',
+  'schedule-result':   '排課.html',
+  'contract-admin':    'admin.html',
+};
+
+const frameNav = {
+  'schedule-students': 'students',
+  'schedule-result':   'result',
+  'salary':            'salary',
+};
+
+function getOrCreateFrame(key) {
+  if (frames[key]) return frames[key];
+
+  const iframe = document.createElement('iframe');
+  iframe.className = 'sys-frame';
+  iframe.src = frameSrc[key];
+  iframe.setAttribute('data-key', key);
+
+  iframe.addEventListener('load', () => {
+    applyInPageNav(key, iframe);
+    if (current === key) showFrame(key);
+  });
+
+  document.getElementById('content').appendChild(iframe);
+  frames[key] = iframe;
+  return iframe;
+}
+
+function applyInPageNav(key, iframe) {
+  try {
+    const win = iframe.contentWindow;
+    if (['schedule-students', 'schedule-result'].includes(key)) {
+      const page = key === 'schedule-students' ? 'students' : 'result';
+      win.showPage && win.showPage(page);
+    }
+    if (key === 'salary') {
+      const doc = iframe.contentDocument;
+      if (doc) {
+        const tabs = doc.querySelectorAll('.tab');
+        tabs.forEach(t => { if (t.textContent.includes('薪資')) t.click(); });
+      }
+    }
+  } catch(e) {}
+}
+
+function showFrame(key) {
+  Object.entries(frames).forEach(([k, f]) => {
+    f.classList.toggle('visible', k === key);
+  });
+  document.getElementById('loading').classList.add('hidden');
+}
+
+function nav(key, el) {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+
+  const isNew = !frames[key];
+  if (isNew) {
+    document.getElementById('loading').classList.remove('hidden');
+    Object.values(frames).forEach(f => f.classList.remove('visible'));
+  }
+
+  current = key;
+  const iframe = getOrCreateFrame(key);
+
+  if (!isNew) {
+    showFrame(key);
+    applyInPageNav(key, iframe);
+  }
+
+  closeSidebar();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+// Boot: load 學費管理 by default
+nav('tuition', document.querySelector('.nav-item'));
+</script>
 </body>
 </html>
