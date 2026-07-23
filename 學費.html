@@ -1,0 +1,2763 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>學費管理系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --ink:#1a1814; --ink2:#4a4640; --ink3:#8a8480;
+  --paper:#faf8f4; --paper2:#f2ede4; --paper3:#e8e0d0;
+  --red:#c0392b; --red-lt:#fdf0ee;
+  --blue:#1a4a7a; --blue-lt:#eef3f9;
+  --green:#1a5c3a; --green-lt:#eef6f1;
+  --gold:#8b6914; --gold-lt:#fdf7e8;
+  --orange:#b35400; --orange-lt:#fff4e8;
+  --purple:#5b2d8e; --purple-lt:#f3eeff;
+  --border:rgba(26,24,20,0.12); --radius:8px;
+  --serif:'Noto Serif TC',serif; --sans:'Noto Sans TC',sans-serif;
+  --shadow:0 2px 12px rgba(26,24,20,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--paper2);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.6;}
+header{background:var(--ink);color:var(--paper);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+header h1{font-family:var(--serif);font-size:1.1rem;font-weight:600;letter-spacing:.05em;}
+.header-sub{font-size:.75rem;display:flex;align-items:center;gap:.3rem;}
+.app{max-width:1060px;margin:0 auto;padding:1.5rem;display:grid;grid-template-columns:290px 1fr;gap:1.25rem;align-items:start;}
+@media(max-width:720px){.app{grid-template-columns:1fr;padding:1rem;}}
+.panel{background:var(--paper);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:1rem;}
+.panel-head{padding:.7rem 1.25rem;border-bottom:1px solid var(--border);background:var(--paper2);display:flex;align-items:center;justify-content:space-between;}
+.panel-head h2{font-size:.82rem;font-weight:600;color:var(--ink2);letter-spacing:.06em;}
+.panel-body{padding:1rem 1.25rem;}
+label{display:block;font-size:.78rem;font-weight:500;color:var(--ink2);margin-bottom:.3rem;}
+select,input[type=text],input[type=date]{width:100%;padding:.52rem .75rem;border:1px solid var(--border);border-radius:6px;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:.88rem;outline:none;transition:border-color .15s;-webkit-appearance:none;}
+select:focus,input:focus{border-color:var(--ink);}
+textarea{width:100%;padding:.52rem .75rem;border:1px solid var(--border);border-radius:6px;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:.85rem;outline:none;transition:border-color .15s;resize:none;line-height:1.6;}
+textarea:focus{border-color:var(--ink);}
+.field{margin-bottom:.8rem;}
+
+/* 月份格 */
+.month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.32rem;}
+.month-chip{padding:.36rem 0;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:.79rem;cursor:pointer;background:var(--paper);color:var(--ink2);transition:all .12s;user-select:none;}
+.month-chip:hover{border-color:var(--ink);color:var(--ink);}
+.month-chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:500;}
+.range-btns{display:flex;gap:.32rem;flex-wrap:wrap;margin-bottom:.55rem;}
+.range-btn{font-size:.72rem;padding:.2rem .52rem;border:1px solid var(--border);border-radius:20px;background:var(--paper);color:var(--ink2);cursor:pointer;font-family:var(--sans);transition:all .12s;}
+.range-btn:hover{border-color:var(--ink);color:var(--ink);}
+.year-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.45rem;font-size:.82rem;font-weight:500;color:var(--ink2);}
+.year-btn{width:26px;height:26px;border:1px solid var(--border);border-radius:4px;background:var(--paper);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--ink2);font-family:var(--sans);transition:all .12s;}
+.year-btn:hover{border-color:var(--ink);color:var(--ink);}
+
+/* 按鈕 */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.58rem 1.1rem;border:none;border-radius:6px;font-family:var(--sans);font-size:.86rem;font-weight:500;cursor:pointer;transition:all .12s;letter-spacing:.03em;}
+.btn-primary{background:var(--ink);color:var(--paper);width:100%;}
+.btn-primary:hover{background:#2d2a26;}
+.btn-primary:disabled{background:var(--ink3);cursor:not-allowed;}
+.btn-outline{background:transparent;color:var(--ink);border:1px solid var(--border);}
+.btn-outline:hover{border-color:var(--ink);}
+.btn-danger{background:transparent;color:var(--red);border:1px solid rgba(192,57,43,.25);}
+.btn-danger:hover{background:var(--red-lt);border-color:var(--red);}
+.btn-ghost{background:transparent;color:var(--ink2);border:none;padding:.2rem .4rem;}
+.btn-ghost:hover{color:var(--ink);}
+.btn-sm{padding:.35rem .75rem;font-size:.78rem;width:auto;}
+.btn-row{display:flex;gap:.4rem;margin-top:.55rem;flex-wrap:wrap;}
+
+/* 分頁 */
+.tab-bar{display:flex;border-bottom:1px solid var(--border);background:var(--paper2);padding:0 1.25rem;overflow-x:auto;}
+.tab{padding:.68rem 1rem;font-size:.82rem;font-weight:500;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;white-space:nowrap;}
+.tab.active{color:var(--ink);border-bottom-color:var(--ink);}
+.bill-area{padding:1.25rem;}
+
+/* 快照名稱快速標籤 */
+.preset-tags{display:flex;flex-wrap:wrap;gap:.32rem;margin-bottom:.5rem;}
+.preset-tag{display:inline-flex;align-items:center;gap:.2rem;padding:.18rem .5rem;border:1px solid var(--border);border-radius:20px;font-size:.75rem;cursor:pointer;background:var(--paper);color:var(--ink2);transition:all .12s;user-select:none;}
+.preset-tag:hover{border-color:var(--ink);color:var(--ink);}
+.preset-tag .del{color:var(--ink3);font-size:.7rem;margin-left:.1rem;line-height:1;}
+.preset-tag .del:hover{color:var(--red);}
+.preset-add-row{display:flex;gap:.35rem;margin-top:.4rem;}
+.preset-add-row input{flex:1;font-size:.8rem;padding:.3rem .55rem;}
+
+/* 歷史快照區 */
+.history-list{max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;background:var(--paper);}
+.history-item.group-snap{background:var(--purple-lt);border-left:2px solid var(--purple);}
+.history-item{display:flex;align-items:center;justify-content:space-between;padding:.5rem .85rem;border-bottom:1px solid var(--paper3);cursor:pointer;transition:background .1s;}
+.history-item:last-child{border-bottom:none;}
+.history-item:hover{background:var(--paper2);}
+.history-item.active{background:var(--ink);color:var(--paper);}
+.history-item .h-name{font-size:.84rem;font-weight:500;}
+.history-item .h-meta{font-size:.72rem;color:var(--ink3);}
+.history-item.active .h-meta{color:rgba(255,255,255,.6);}
+.history-actions{display:flex;gap:.3rem;align-items:center;}
+
+/* 學費單卡片 */
+.bill-card{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.5rem;background:white;}
+.bill-card-head{background:var(--ink);color:var(--paper);padding:.82rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.bill-card-head .subject{font-family:var(--serif);font-size:1.05rem;font-weight:600;}
+.bill-card-head .total-badge{font-family:var(--serif);font-size:1.05rem;font-weight:700;background:rgba(255,255,255,.15);padding:.18rem .7rem;border-radius:4px;}
+.bill-table{width:100%;border-collapse:collapse;font-size:.84rem;}
+.bill-table th{background:var(--paper2);padding:.42rem .9rem;text-align:left;font-weight:500;font-size:.76rem;color:var(--ink2);border-bottom:1px solid var(--border);white-space:nowrap;}
+.bill-table td{padding:.5rem .9rem;border-bottom:1px solid var(--paper3);vertical-align:top;}
+.bill-table tr:last-child td{border-bottom:none;}
+.bill-table .num{text-align:right;font-variant-numeric:tabular-nums;}
+.bill-table tr.total-row td{background:var(--paper2);font-weight:600;}
+.dates-cell{font-size:.79rem;color:var(--ink2);}
+.absent-tag{display:inline-flex;align-items:center;gap:.22rem;font-size:.72rem;color:var(--orange);background:rgba(179,84,0,.1);padding:.08rem .42rem;border-radius:3px;margin-top:.22rem;}
+
+.bill-fee-block{padding:.82rem 1.25rem;border-top:1px solid var(--border);background:var(--paper);display:flex;flex-wrap:wrap;gap:.55rem;align-items:center;justify-content:flex-end;}
+.fee-item{display:flex;align-items:center;gap:.32rem;font-size:.79rem;color:var(--ink2);}
+.fee-item span{color:var(--ink);font-weight:500;}
+.fee-total{font-family:var(--serif);font-size:1.1rem;font-weight:700;border-left:1px solid var(--border);padding-left:.7rem;}
+.refund-badge{display:inline-flex;align-items:center;gap:.28rem;padding:.25rem .72rem;border-radius:4px;font-size:.81rem;font-weight:600;}
+.refund-badge.refund{background:var(--blue-lt);color:var(--blue);}
+.refund-badge.supplement{background:var(--red-lt);color:var(--red);}
+.refund-badge.balance{background:var(--green-lt);color:var(--green);}
+
+/* 備註欄 */
+.bill-note-row{display:flex;align-items:flex-start;gap:.75rem;padding:.75rem 1.25rem;border-top:1px solid var(--border);background:var(--paper);}
+.bill-note-label{font-size:.78rem;font-weight:500;color:var(--ink2);white-space:nowrap;padding-top:.32rem;min-width:44px;}
+.bill-note-content{flex:1;}
+.note-display{font-size:.84rem;color:var(--ink2);white-space:pre-wrap;display:none;}
+.note-display.has-note{display:block;}
+.note-save-row{display:flex;justify-content:flex-end;align-items:center;gap:.5rem;margin-top:.35rem;}
+.note-status{font-size:.72rem;color:var(--green);opacity:0;transition:opacity .3s;}
+.note-status.show{opacity:1;}
+
+/* 狀態 */
+.empty-state{text-align:center;padding:3rem 1.5rem;color:var(--ink3);}
+.empty-state .icon{font-size:2.5rem;margin-bottom:.75rem;}
+.empty-state p{font-size:.87rem;line-height:1.8;}
+.loading{text-align:center;padding:2.5rem;color:var(--ink3);font-size:.87rem;}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-3px;margin-left:.5rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.alert{padding:.68rem 1rem;border-radius:6px;font-size:.82rem;margin-bottom:.7rem;line-height:1.5;}
+.alert-warn{background:var(--gold-lt);color:var(--gold);border:1px solid rgba(139,105,20,.2);}
+.alert-ok{background:var(--green-lt);color:var(--green);border:1px solid rgba(26,92,58,.2);}
+.alert-err{background:var(--red-lt);color:var(--red);border:1px solid rgba(192,57,43,.2);}
+.sync-row{display:flex;gap:.5rem;}
+.sync-row .field{flex:1;margin-bottom:0;}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+.status-dot.ok{background:#2ecc71;}.status-dot.err{background:#e74c3c;}.status-dot.loading{background:#f39c12;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.tip-box{background:var(--gold-lt);border:1px solid rgba(139,105,20,.15);border-radius:6px;padding:.55rem .85rem;font-size:.75rem;color:var(--gold);line-height:1.6;margin-top:.6rem;}
+
+/* 分隔線 */
+.divider{border:none;border-top:1px solid var(--border);margin:.85rem 0;}
+
+/* 歷史模式 badge */
+.mode-badge{display:inline-flex;align-items:center;gap:.3rem;padding:.15rem .55rem;border-radius:20px;font-size:.72rem;font-weight:500;}
+.mode-badge.history{background:var(--purple-lt);color:var(--purple);}
+.mode-badge.live{background:var(--green-lt);color:var(--green);}
+
+/* 手動開單 Modal */
+.m-modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.45);overflow-y:auto;}
+.m-box{max-width:680px;margin:1.5rem auto;padding:1.5rem;background:var(--paper);border-radius:var(--radius);box-shadow:0 8px 40px rgba(0,0,0,.25);}
+.m-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border);}
+.m-title{font-family:var(--serif);font-size:1.05rem;font-weight:700;}
+.m-close{border:none;background:none;font-size:1.3rem;cursor:pointer;color:var(--ink3);padding:.2rem .4rem;line-height:1;}
+.m-close:hover{color:var(--ink);}
+.m-section{margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+.m-section-title{font-size:.78rem;font-weight:600;color:var(--ink2);letter-spacing:.05em;margin-bottom:.55rem;}
+.m-range-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.55rem;}
+.weekday-grid{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.55rem;}
+.weekday-chip{width:36px;height:36px;border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;cursor:pointer;background:var(--paper);color:var(--ink2);transition:all .12s;user-select:none;}
+.weekday-chip:hover{border-color:var(--ink);}
+.weekday-chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.m-lesson-header{display:grid;grid-template-columns:130px 75px 1fr auto;gap:.4rem;padding:0 .1rem;margin-bottom:.25rem;}
+.m-lesson-header span{font-size:.71rem;color:var(--ink3);}
+.m-lesson-row{display:grid;grid-template-columns:130px 75px 1fr auto;gap:.4rem;align-items:center;margin-bottom:.35rem;}
+.m-inp{padding:.38rem .5rem;border:1px solid var(--border);border-radius:5px;font-family:var(--sans);font-size:.82rem;background:var(--paper);color:var(--ink);outline:none;width:100%;}
+.m-inp:focus{border-color:var(--ink);}
+.m-del{width:26px;height:26px;border:1px solid rgba(192,57,43,.25);border-radius:4px;background:transparent;color:var(--red);cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.m-del:hover{background:var(--red-lt);}
+.m-sub-tab{padding:.28rem .7rem;border:1px solid var(--border);border-radius:20px;font-size:.78rem;cursor:pointer;background:var(--paper);color:var(--ink2);transition:all .12s;font-family:var(--sans);}
+.m-sub-tab.active{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:500;}
+.m-fee-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;flex-wrap:wrap;}
+.m-fee-row label{min-width:64px;font-size:.78rem;font-weight:500;color:var(--ink2);}
+.m-fee-inp{width:90px;padding:.35rem .5rem;border:1px solid var(--border);border-radius:5px;font-size:.83rem;font-family:var(--sans);background:var(--paper);color:var(--ink);outline:none;text-align:right;}
+.m-fee-inp:focus{border-color:var(--ink);}
+.m-preview{padding:.7rem .9rem;background:var(--paper2);border-radius:6px;font-size:.83rem;}
+.m-preview-row{display:flex;justify-content:space-between;margin-bottom:.2rem;}
+.m-footer{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem;padding-top:.85rem;border-top:1px solid var(--border);}
+/* 薪資單 */
+.salary-card{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.25rem;background:white;}
+.salary-card-head{background:var(--blue);color:var(--paper);padding:.82rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.salary-card-head .sc-name{font-family:var(--serif);font-size:1.05rem;font-weight:600;}
+.salary-card-head .sc-badge{font-family:var(--serif);font-size:1.05rem;font-weight:700;background:rgba(255,255,255,.15);padding:.18rem .7rem;border-radius:4px;}
+.salary-summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.75rem;padding:1rem 1.25rem;}
+.salary-summary-item{background:var(--paper2);border-radius:6px;padding:.65rem .85rem;}
+.salary-summary-label{font-size:.73rem;color:var(--ink3);margin-bottom:.2rem;}
+.salary-summary-value{font-size:1rem;font-weight:600;color:var(--ink);}
+.salary-summary-sub{font-size:.73rem;color:var(--ink2);margin-top:.1rem;}
+.salary-detail-table{width:100%;border-collapse:collapse;font-size:.83rem;}
+.salary-detail-table th{background:var(--paper2);padding:.4rem .85rem;text-align:left;font-weight:500;font-size:.75rem;color:var(--ink2);border-bottom:1px solid var(--border);white-space:nowrap;}
+.salary-detail-table td{padding:.45rem .85rem;border-bottom:1px solid var(--paper3);vertical-align:top;}
+.salary-detail-table tr:last-child td{border-bottom:none;}
+.salary-detail-table .num{text-align:right;font-variant-numeric:tabular-nums;}
+.salary-detail-table tr.sub-total td{background:var(--paper2);font-weight:600;}
+.salary-total-block{padding:.85rem 1.25rem;border-top:1px solid var(--border);background:var(--paper);display:flex;justify-content:flex-end;align-items:center;gap:.6rem;}
+
+/* 姓名就地編輯 */
+.bill-name-input{
+  font-family:var(--serif);font-size:1.15rem;font-weight:700;
+  border:none;border-bottom:1.5px solid var(--border);
+  background:transparent;outline:none;padding:0;
+  color:var(--ink);min-width:80px;width:auto;max-width:200px;
+  cursor:text;
+}
+.bill-name-input:focus{border-bottom-color:var(--ink);}
+@media print{
+  .bill-name-input{border:none;background:transparent;}
+}
+
+/* 教材明細 */
+.material-row{padding:.7rem 1.25rem;border-top:1px solid var(--border);background:#fdf6ee;}
+.material-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;font-size:.78rem;color:#8a5a2b;font-weight:600;}
+.material-list{display:flex;flex-direction:column;gap:.4rem;}
+.material-item{display:flex;gap:.35rem;align-items:center;flex-wrap:wrap;}
+.material-item select,.material-item input{padding:.28rem .45rem;border:1px solid var(--border);border-radius:5px;font-size:.8rem;font-family:var(--sans);background:white;color:var(--ink);outline:none;}
+.material-item .m-cat{width:75px;}
+.material-item .m-name{flex:1;min-width:120px;}
+.material-item .m-vol{width:70px;}
+.material-item .m-del{background:none;border:none;color:var(--red);cursor:pointer;font-size:1rem;padding:0 .3rem;}
+.material-save{display:flex;justify-content:flex-end;align-items:center;gap:.6rem;margin-top:.5rem;}
+
+/* 時數增減按鈕 */
+.hr-btn{
+  width:24px;height:24px;border:1px solid var(--border);border-radius:5px;
+  background:var(--paper);color:var(--ink);font-size:.95rem;line-height:1;
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  font-family:var(--sans);padding:0;transition:background .15s;
+}
+.hr-btn:hover{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+/* 就地編輯費用 */
+.bill-edit-row{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;padding:.5rem 1.25rem;border-top:1px solid var(--border);background:var(--paper2);}
+
+/* 署名 */
+.watermark-wrap{position:relative;}
+.bill-signature{
+  text-align:right; padding:.4rem 1.25rem .6rem;
+  font-size:.72rem; color:rgba(26,24,20,0.28);
+  letter-spacing:.04em; font-family:var(--sans);
+  user-select:none;
+}
+
+@media print {
+  header,aside,.tab-bar,.btn-row,.note-save-row,.note-textarea,.bill-edit-row,#cal-snap-bar,#manual-snap-bar,.print-hide,#history-toolbar,.material-hide{display:none!important;}
+  .bill-name-input{border:none!important;background:transparent!important;}
+  .app{display:block;padding:0;max-width:100%;}
+  .panel{box-shadow:none;border:none;}
+  .bill-card{break-inside:avoid;border:1px solid #ccc;margin-bottom:1.2rem;}
+  body{background:white;}
+  .bill-area{padding:0;}
+  .note-display{display:block!important;}
+  .note-textarea{display:none!important;}
+  .bill-note-row{padding:.6rem 1.25rem;}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>學費管理系統</h1>
+  <div style="display:flex;align-items:center;gap:1.2rem">
+    <nav style="display:flex;gap:.1rem">
+      <button id="nav-bill" onclick="switchPage('bill')" style="padding:.3rem .75rem;border:none;background:rgba(255,255,255,.15);color:var(--paper);border-radius:4px;cursor:pointer;font-family:var(--sans);font-size:.8rem;font-weight:500;">學費單</button>
+      <button id="nav-salary" onclick="switchPage('salary')" style="padding:.3rem .75rem;border:none;background:transparent;color:rgba(255,255,255,.6);border-radius:4px;cursor:pointer;font-family:var(--sans);font-size:.8rem;">薪資</button>
+    </nav>
+    <div class="header-sub" id="api-status"><span class="status-dot loading"></span><span>未連線</span></div>
+  </div>
+</header>
+
+<div class="app">
+<aside>
+  <!-- API -->
+  <div class="panel">
+    <div class="panel-head"><h2>⚙ API 連線設定</h2></div>
+    <div class="panel-body">
+      <div class="field">
+        <label>Apps Script 部署網址</label>
+        <input type="text" id="api-url-input" placeholder="https://script.google.com/macros/s/…/exec">
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="saveApiUrl()">儲存並連線</button>
+      <p style="font-size:.72rem;color:var(--ink3);margin-top:.5rem;line-height:1.6">
+        部署→新增部署作業→網頁應用程式<br>執行身分：<b>我</b>　存取：<b>所有人</b>
+      </p>
+    </div>
+  </div>
+
+  <!-- 學生 -->
+  <div class="panel">
+    <div class="panel-head"><h2>👤 學生</h2></div>
+    <div class="panel-body">
+      <div class="field">
+        <label>選擇學生</label>
+        <select id="student-select" onchange="onStudentChange()"><option value="">— 請先連線 —</option></select>
+      </div>
+      <div id="subject-tags" style="display:flex;flex-wrap:wrap;gap:.3rem"></div>
+    </div>
+  </div>
+
+  <!-- 月份 -->
+  <div class="panel">
+    <div class="panel-head"><h2>📅 日期範圍</h2></div>
+    <div class="panel-body">
+
+      <!-- 模式切換 -->
+      <div style="display:flex;gap:.35rem;margin-bottom:.7rem">
+        <button id="mode-month-btn" class="range-btn" style="flex:1;text-align:center;background:var(--ink);color:var(--paper);border-color:var(--ink)"
+          onclick="switchDateMode('month')">月份選擇</button>
+        <button id="mode-date-btn" class="range-btn" style="flex:1;text-align:center"
+          onclick="switchDateMode('date')">自訂日期</button>
+      </div>
+
+      <!-- 月份模式 -->
+      <div id="mode-month">
+        <div class="range-btns">
+          <button class="range-btn" onclick="setRange('upper')">上學期</button>
+          <button class="range-btn" onclick="setRange('lower')">下學期</button>
+          <button class="range-btn" onclick="setRange('summer')">暑假</button>
+          <button class="range-btn" onclick="setRange('winter')">寒假</button>
+          <button class="range-btn" onclick="clearMonths()">清除</button>
+        </div>
+        <div class="year-row">
+          <button class="year-btn" onclick="changeYear(-1)">‹</button>
+          <span id="year-label"></span>
+          <button class="year-btn" onclick="changeYear(1)">›</button>
+        </div>
+        <div class="month-grid" id="month-grid"></div>
+        <div style="font-size:.72rem;color:var(--ink3);margin-top:.45rem" id="month-hint">未選擇月份</div>
+      </div>
+
+      <!-- 自訂日期模式 -->
+      <div id="mode-date" style="display:none">
+        <div class="sync-row" style="margin-bottom:.5rem">
+          <div class="field"><label>開始日期</label><input type="date" id="custom-start"></div>
+          <div class="field"><label>結束日期</label><input type="date" id="custom-end"></div>
+        </div>
+        <div class="range-btns">
+          <button class="range-btn" onclick="setCustomRange('upper')">上學期</button>
+          <button class="range-btn" onclick="setCustomRange('lower')">下學期</button>
+          <button class="range-btn" onclick="setCustomRange('summer')">暑假</button>
+          <button class="range-btn" onclick="setCustomRange('winter')">寒假</button>
+        </div>
+        <div style="font-size:.72rem;color:var(--ink3);margin-top:.3rem" id="date-hint">未選擇日期</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 學費單 -->
+  <div class="panel">
+    <div class="panel-head"><h2>📄 產生學費單</h2></div>
+    <div class="panel-body">
+      <button class="btn btn-primary" onclick="generateBill()">從日曆記錄產生</button>
+      <hr class="divider">
+      <button class="btn btn-primary" onclick="openManualModal()" style="background:var(--blue)">✏️ 手動開立學費單</button>
+      <hr class="divider">
+      <div class="btn-row">
+        <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 列印</button>
+        <button class="btn btn-outline btn-sm" onclick="exportPDF()">⬇ PDF</button>
+        <button class="btn btn-outline btn-sm" onclick="exportPNG()">🖼 圖片</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 退補單 + 快照管理 -->
+  <div class="panel">
+    <div class="panel-head"><h2>📁 快照管理</h2></div>
+    <div class="panel-body">
+
+      <!-- 歷史快照列表 -->
+      <label>現有快照 <span style="font-weight:400;color:var(--ink3)">（點選查看 / 右側刪除）</span></label>
+      <div class="history-list" id="history-list">
+        <div style="padding:1rem;text-align:center;font-size:.8rem;color:var(--ink3)">連線後顯示</div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- 產生退補單 -->
+      <label style="margin-bottom:.4rem">退補單</label>
+      <button class="btn btn-primary btn-sm" onclick="generateRefund()" style="width:100%">↕ 產生退補單（比對選中快照）</button>
+
+      <hr class="divider">
+
+      <!-- 存快照 -->
+      <label>存學期初快照</label>
+
+      <!-- 快速標籤 -->
+      <div style="font-size:.72rem;color:var(--ink3);margin-bottom:.3rem">常用名稱（點一下填入）</div>
+      <div class="preset-tags" id="preset-tags"></div>
+      <div class="preset-add-row">
+        <input type="text" id="preset-input" placeholder="新增常用名稱…" maxlength="20"
+          onkeydown="if(event.key==='Enter')addPreset()">
+        <button class="btn btn-outline btn-sm" onclick="addPreset()">＋</button>
+      </div>
+
+      <div style="margin-top:.65rem;display:flex;gap:.4rem">
+        <input type="text" id="snap-name" placeholder="快照名稱" style="flex:1">
+        <button class="btn btn-outline btn-sm" onclick="saveSnapshot()">存入</button>
+      </div>
+      <p style="font-size:.72rem;color:var(--ink3);margin-top:.3rem">選好月份後填名稱再存</p>
+    </div>
+  </div>
+
+  <!-- 日曆同步 -->
+  <div class="panel">
+    <div class="panel-head"><h2>🔄 日曆同步</h2></div>
+    <div class="panel-body">
+      <div class="sync-row">
+        <div class="field"><label>開始</label><input type="date" id="sync-start"></div>
+        <div class="field"><label>結束</label><input type="date" id="sync-end"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
+        <input type="checkbox" id="sync-overwrite" style="width:15px;height:15px;cursor:pointer">
+        <label for="sync-overwrite" style="margin:0;font-weight:400;font-size:.8rem;cursor:pointer;color:var(--red)">
+          覆蓋模式（刪除舊資料重新抓）
+        </label>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="syncCalendar()" id="sync-btn">同步日曆</button>
+      <div id="sync-result" style="margin-top:.5rem"></div>
+      <div class="tip-box">每月初、開學費單前、有調課後同步一次<br>日曆標題修改後請用覆蓋模式重新同步</div>
+      <div style="border-top:1px solid var(--border);margin-top:.85rem;padding-top:.85rem">
+        <div style="font-size:.78rem;font-weight:500;color:var(--ink2);margin-bottom:.4rem">🧹 課程記錄去重複</div>
+        <div style="font-size:.72rem;color:var(--ink3);margin-bottom:.5rem">掃描並刪除重複的課程記錄（不影響快照）</div>
+        <button class="btn btn-outline btn-sm" onclick="deduplicateLessons()" id="dedup-btn" style="width:100%">執行去重複</button>
+        <div id="dedup-result" style="margin-top:.5rem"></div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main>
+  <div class="panel" style="margin-bottom:0">
+    <div class="tab-bar" id="tab-bar">
+      <div class="tab active" data-tab="bill" onclick="switchTab('bill',this)">學費單</div>
+      <div class="tab" data-tab="refund" onclick="switchTab('refund',this)">退補單</div>
+      <!-- 歷史分頁動態插入 -->
+    </div>
+    <div id="tab-bill" class="bill-area">
+      <div class="empty-state"><div class="icon">📋</div><p>選擇學生與月份<br>點「產生學費單」</p></div>
+    </div>
+    <div id="tab-refund" class="bill-area" style="display:none">
+      <div class="empty-state"><div class="icon">↕</div><p>選擇學生與快照<br>點「↕ 產生退補單」</p></div>
+    </div>
+    <div id="tab-history" class="bill-area" style="display:none">
+      <div class="empty-state"><div class="icon">📁</div><p>點左側快照名稱<br>查看當時的學費單</p></div>
+    </div>
+  </div>
+</main>
+</div>
+
+<script>
+const STORAGE_KEY="tutor_api_v6";
+const PRESET_KEY="tutor_presets_v1";
+let API_URL=localStorage.getItem(STORAGE_KEY)||"";
+let currentYear=new Date().getFullYear();
+let selectedMonths=new Set();
+let _noteCache={};
+let _selectedSnap=null; // 目前選中的快照名稱
+
+// ── 初始化 ──
+addEventListener("DOMContentLoaded",()=>{
+  if(API_URL){document.getElementById("api-url-input").value=API_URL;init();}
+  renderMonthGrid();setDefaultSyncDates();renderPresets();
+});
+
+async function init(){
+  setStatus("loading","連線中…");
+  try{
+    const d=await apiCall({action:"ping"});
+    if(d.ok){setStatus("ok","已連線");await Promise.all([loadStudents(),loadSnapshots()]);}
+  }catch(e){
+    setStatus("err","連線失敗");
+    showMsg("tab-bill","err","❌ 無法連線<br><small>確認部署網址、存取設為「所有人」、已重新部署</small>");
+  }
+}
+function setStatus(t,x){document.getElementById("api-status").innerHTML=`<span class="status-dot ${t}"></span><span>${x}</span>`;}
+function saveApiUrl(){
+  const v=document.getElementById("api-url-input").value.trim();
+  if(!v){alert("請輸入網址");return;}
+  API_URL=v;localStorage.setItem(STORAGE_KEY,v);init();
+}
+
+// ── API ──
+async function apiCall(p){
+  if(!API_URL)throw new Error("請先設定 API 網址");
+  try{
+    const r=await fetch(API_URL+"?"+new URLSearchParams(p),{redirect:"follow"});
+    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    const d=await r.json();
+    if(d&&d.error)throw new Error(d.error);
+    return d;
+  }catch(e){
+    if(e.message==="Failed to fetch"){
+      throw new Error("連線逾時或範圍太大，請縮小日期範圍後重試（建議一次覆蓋 1-3 個月）");
+    }
+    throw e;
+  }
+}
+
+// ── 學生 ──
+async function loadStudents(){
+  const d=await apiCall({action:"getStudents"});
+  window._students=d.students||[];
+  const sel=document.getElementById("student-select");
+  sel.innerHTML='<option value="">— 請選擇 —</option>';
+  window._students.forEach(s=>{const o=document.createElement("option");o.value=s.name;o.textContent=s.name;sel.appendChild(o);});
+}
+async function onStudentChange(){
+  const name=document.getElementById("student-select").value;
+  const s=(window._students||[]).find(s=>s.name===name);
+  document.getElementById("subject-tags").innerHTML=s
+    ?s.subjects.map(sub=>`<span style="padding:.18rem .55rem;border:1px solid var(--border);border-radius:20px;font-size:.75rem;color:var(--ink2)">${sub.subject} ${sub.rate}元/hr</span>`).join(""):"";
+  // 載入該學生所屬團班（供快照列表顯示團班快照）
+  window._studentGroups=[];
+  if(name){
+    try{
+      const g=await apiCall({action:"getStudentGroup",student:name});
+      window._studentGroups=g.groups||[];
+    }catch(e){}
+  }
+  // 換學生時重新篩選快照列表
+  filterAndRenderSnapshots();
+  // 清除目前選中的快照
+  _selectedSnap=null;
+  document.querySelectorAll(".history-item").forEach(el=>el.classList.remove("active"));
+  // 更新手動輸入欄位
+  renderManualInputs(s);
+}
+
+function renderManualInputs(student){ /* replaced by modal */ }
+
+// ── 月份 ──
+function renderMonthGrid(){
+  document.getElementById("year-label").textContent=currentYear+" 年";
+  const g=document.getElementById("month-grid");g.innerHTML="";
+  for(let m=1;m<=12;m++){
+    const ym=`${currentYear}-${String(m).padStart(2,"0")}`;
+    const c=document.createElement("div");
+    c.className="month-chip"+(selectedMonths.has(ym)?" active":"");
+    c.dataset.ym=ym;c.textContent=m+"月";
+    c.onclick=()=>{selectedMonths.has(ym)?selectedMonths.delete(ym):selectedMonths.add(ym);c.classList.toggle("active");updateMonthHint();};
+    g.appendChild(c);
+  }
+}
+function changeYear(d){currentYear+=d;renderMonthGrid();}
+function getSortedMonths(){return[...selectedMonths].sort();}
+function clearMonths(){selectedMonths.clear();document.querySelectorAll(".month-chip").forEach(c=>c.classList.remove("active"));updateMonthHint();}
+function updateMonthHint(){
+  const ms=getSortedMonths();
+  document.getElementById("month-hint").textContent=ms.length
+    ?"已選："+ms.map(m=>{const[y,mo]=m.split("-");return y+"/"+parseInt(mo)+"月";}).join("、"):"未選擇月份";
+}
+// ── 日期模式切換 ──
+let _dateMode = "month"; // "month" 或 "date"
+
+function switchDateMode(mode){
+  _dateMode = mode;
+  document.getElementById("mode-month").style.display = mode==="month"?"block":"none";
+  document.getElementById("mode-date").style.display  = mode==="date" ?"block":"none";
+  // 按鈕樣式
+  const mBtn=document.getElementById("mode-month-btn");
+  const dBtn=document.getElementById("mode-date-btn");
+  if(mode==="month"){
+    mBtn.style.background="var(--ink)"; mBtn.style.color="var(--paper)"; mBtn.style.borderColor="var(--ink)";
+    dBtn.style.background=""; dBtn.style.color=""; dBtn.style.borderColor="";
+  }else{
+    dBtn.style.background="var(--ink)"; dBtn.style.color="var(--paper)"; dBtn.style.borderColor="var(--ink)";
+    mBtn.style.background=""; mBtn.style.color=""; mBtn.style.borderColor="";
+    updateDateHint();
+  }
+}
+
+function updateDateHint(){
+  const s=document.getElementById("custom-start").value;
+  const e=document.getElementById("custom-end").value;
+  const hint=document.getElementById("date-hint");
+  if(s&&e) hint.textContent=`${s} ～ ${e}`;
+  else if(s) hint.textContent=`從 ${s} 起`;
+  else hint.textContent="未選擇日期";
+}
+
+// 自訂日期的快速範圍
+function setCustomRange(type){
+  const y=new Date().getFullYear();
+  const ranges={
+    upper:{start:`${y}-09-01`,end:`${y+1}-01-31`},
+    lower:{start:`${y}-02-01`,end:`${y}-06-30`},
+    summer:{start:`${y}-07-01`,end:`${y}-08-31`},
+    winter:{start:`${y}-01-01`,end:`${y}-02-10`},
+  };
+  const r=ranges[type];
+  if(!r) return;
+  document.getElementById("custom-start").value=r.start;
+  document.getElementById("custom-end").value=r.end;
+  updateDateHint();
+}
+
+// 取得目前選擇的日期範圍（供 getBill 使用）
+function getDateRange(){
+  if(_dateMode==="date"){
+    const s=document.getElementById("custom-start").value;
+    const e=document.getElementById("custom-end").value;
+    return {mode:"date", start:s, end:e};
+  }else{
+    return {mode:"month", months:getSortedMonths()};
+  }
+}
+
+function setRange(type){
+  selectedMonths.clear();
+  const y=new Date().getFullYear();
+  const add={upper:[`${y}-09`,`${y}-10`,`${y}-11`,`${y}-12`,`${y+1}-01`],lower:[`${y}-02`,`${y}-03`,`${y}-04`,`${y}-05`,`${y}-06`],summer:[`${y}-07`,`${y}-08`],winter:[`${y}-01`,`${y}-02`]}[type]||[];
+  add.forEach(ym=>selectedMonths.add(ym));
+  if(add.length)currentYear=parseInt(add[0].split("-")[0]);
+  renderMonthGrid();updateMonthHint();
+}
+
+// ── 手動產生學費單 ──
+function generateManualBill(){ openManualModal(); }
+
+// ── Modal 手動開單 ──
+let _mSubIdx = 0;
+let _mLessons = {}; // { subIdx: [{date,hours,note}] }
+let _mStudent = null;
+
+function openManualModal(){
+  const name = document.getElementById("student-select").value;
+  _mStudent = (window._students||[]).find(s=>s.name===name);
+  if(!name){ alert("請先選擇學生"); return; }
+  if(!_mStudent||!_mStudent.subjects||!_mStudent.subjects.length){
+    alert("此學生在「學生資料」分頁沒有科目，請先新增"); return;
+  }
+
+  _mSubIdx = 0;
+  _mLessons = {};
+  _mStudent.subjects.forEach((_,i)=>{ _mLessons[i]=[]; });
+
+  document.getElementById("m-student-info").innerHTML =
+    `<b>${name}</b>　` + _mStudent.subjects.map(s=>`${s.subject} ${s.rate}元/hr`).join("　");
+
+  // 科目分頁
+  document.getElementById("m-subject-tabs").innerHTML =
+    _mStudent.subjects.map((s,i)=>
+      `<button class="m-sub-tab${i===0?" active":""}" onclick="mSwitchSub(${i})">${s.subject}</button>`
+    ).join("");
+
+  // 預設費率
+  setMRate(_mStudent.subjects[0].rate, _mStudent.subjects[0].material||0);
+
+  // 預設日期（月份選擇的第一個月）
+  const months = getSortedMonths();
+  if(months.length){
+    const [y,m] = months[0].split("-");
+    document.getElementById("m-start").value = `${y}-${m}-01`;
+    const lastDay = new Date(parseInt(y), parseInt(m), 0).getDate();
+    const lastMonth = months[months.length-1].split("-");
+    const [ly,lm] = lastMonth;
+    const lLastDay = new Date(parseInt(ly), parseInt(lm), 0).getDate();
+    document.getElementById("m-end").value = `${ly}-${lm}-${lLastDay}`;
+  } else {
+    const now = new Date();
+    const y=now.getFullYear(), m=String(now.getMonth()+1).padStart(2,"0");
+    document.getElementById("m-start").value = `${y}-${m}-01`;
+    document.getElementById("m-end").value = `${y}-${m}-${new Date(now.getFullYear(),now.getMonth()+1,0).getDate()}`;
+  }
+  document.getElementById("m-default-hours").value = "1.5";
+
+  mRenderLessons();
+  updateMPreview();
+  document.getElementById("manual-modal").style.display = "block";
+}
+
+function closeManualModal(){
+  document.getElementById("manual-modal").style.display = "none";
+}
+
+function mSwitchSub(idx){
+  _mSubIdx = idx;
+  document.querySelectorAll(".m-sub-tab").forEach((t,i)=>t.classList.toggle("active",i===idx));
+  setMRate(_mStudent.subjects[idx].rate, _mStudent.subjects[idx].material||0);
+  mRenderLessons();
+  updateMPreview();
+}
+
+function setMRate(rate, material){
+  document.getElementById("m-rate").value = rate;
+  document.getElementById("m-material").value = material||0;
+  document.getElementById("m-tuition-manual").checked = false;
+  updateMPreview();
+}
+
+// 快速產生課堂
+function generateLessonsByRange(){
+  const start = document.getElementById("m-start").value;
+  const end   = document.getElementById("m-end").value;
+  const hrs   = parseFloat(document.getElementById("m-default-hours").value)||1.5;
+  const activeDays = [...document.querySelectorAll(".weekday-chip.active")].map(c=>parseInt(c.dataset.day));
+
+  if(!start||!end){ alert("請填入開始和結束日期"); return; }
+  if(!activeDays.length){ alert("請選擇至少一個上課星期"); return; }
+
+  const d = new Date(start+"T00:00:00");
+  const endD = new Date(end+"T00:00:00");
+  const newLessons = [];
+  const weekdays = ["日","一","二","三","四","五","六"];
+
+  while(d <= endD){
+    if(activeDays.includes(d.getDay())){
+      const dateStr = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+      newLessons.push({ date:dateStr, hours:hrs, note:"" });
+    }
+    d.setDate(d.getDate()+1);
+  }
+
+  if(!newLessons.length){ alert("所選區間內沒有符合的日期"); return; }
+
+  // 詢問是取代或追加
+  if(_mLessons[_mSubIdx]&&_mLessons[_mSubIdx].length>0){
+    if(confirm(`目前已有 ${_mLessons[_mSubIdx].length} 堂，要「取代」還是「追加」？
+確定 = 取代，取消 = 追加`)){
+      _mLessons[_mSubIdx] = newLessons;
+    } else {
+      _mLessons[_mSubIdx] = [..._mLessons[_mSubIdx], ...newLessons];
+    }
+  } else {
+    _mLessons[_mSubIdx] = newLessons;
+  }
+
+  mRenderLessons();
+  updateMPreview();
+}
+
+// 渲染課堂列表
+function mRenderLessons(){
+  const lessons = _mLessons[_mSubIdx]||[];
+  const area = document.getElementById("m-lesson-area");
+  if(!lessons.length){
+    area.innerHTML=`<div style="text-align:center;padding:.8rem;font-size:.8rem;color:var(--ink3)">點「產生課堂列表」或「＋ 新增一堂」</div>`;
+    return;
+  }
+  let html = `<div class="m-lesson-header"><span>日期</span><span>時數(hr)</span><span>備註</span><span></span></div>`;
+  lessons.forEach((l,i)=>{
+    html += `<div class="m-lesson-row">
+      <input type="date" class="m-inp" value="${l.date}" onchange="mUpdateLesson(${i},'date',this.value)">
+      <input type="number" class="m-inp" value="${l.hours}" min="0" step="0.5" onchange="mUpdateLesson(${i},'hours',this.value)">
+      <input type="text" class="m-inp" value="${l.note||""}" placeholder="如：補課" onchange="mUpdateLesson(${i},'note',this.value)">
+      <button class="m-del" onclick="mDelLesson(${i})">✕</button>
+    </div>`;
+  });
+  area.innerHTML = html;
+}
+
+function mUpdateLesson(i, field, val){
+  const l = _mLessons[_mSubIdx][i];
+  if(!l) return;
+  l[field] = field==="hours"?(parseFloat(val)||0):val;
+  updateMPreview();
+}
+function mDelLesson(i){
+  _mLessons[_mSubIdx].splice(i,1);
+  mRenderLessons();
+  updateMPreview();
+}
+function addManualLesson(){
+  const now=new Date();
+  const d=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
+  const hrs=parseFloat(document.getElementById("m-default-hours").value)||1.5;
+  _mLessons[_mSubIdx].push({date:d,hours:hrs,note:""});
+  mRenderLessons();
+  updateMPreview();
+}
+
+// 費用預覽
+function updateMPreview(){
+  if(!_mStudent) return;
+  const rate = parseFloat(document.getElementById("m-rate").value)||0;
+  const manualTuition = document.getElementById("m-tuition-manual").checked;
+  const material = parseFloat(document.getElementById("m-material").value)||0;
+
+  const sub = _mStudent.subjects[_mSubIdx];
+  const lessons = _mLessons[_mSubIdx]||[];
+  const totalHours = lessons.reduce((s,l)=>s+(parseFloat(l.hours)||0),0);
+  const autoTuition = Math.round(totalHours * rate);
+
+  if(!manualTuition){
+    document.getElementById("m-tuition").value = autoTuition;
+  }
+  const tuition = parseInt(document.getElementById("m-tuition").value)||0;
+  const total = tuition + material;
+
+  const preview = document.getElementById("m-preview");
+  preview.innerHTML = `
+    <div class="m-preview-row"><span>${sub.subject} ${lessons.length} 堂，共 ${totalHours.toFixed(1)} hr</span><span></span></div>
+    <div class="m-preview-row"><span>學費（${rate}元/hr × ${totalHours.toFixed(1)}hr）</span><span>${autoTuition.toLocaleString()} 元${manualTuition?" → 手動："+tuition.toLocaleString()+" 元":""}</span></div>
+    ${material>0?`<div class="m-preview-row"><span>教材費</span><span>${material.toLocaleString()} 元</span></div>`:""}
+    <div class="m-preview-row m-preview-total"><span>合計</span><span>${total.toLocaleString()} 元</span></div>`;
+}
+
+// 確認產生
+function confirmManualBill(){
+  if(!_mStudent){ alert("請先選擇學生"); return; }
+  const months = getSortedMonths();
+
+  const bills = _mStudent.subjects.map((sub,i)=>{
+    const lessons = (_mLessons[i]||[]).filter(l=>l.hours>0&&l.date);
+    if(!lessons.length) return null;
+
+    // 取得費率（使用目前科目的設定，其他科目用各自的費率）
+    const rate = (i===_mSubIdx)
+      ? (parseFloat(document.getElementById("m-rate").value)||sub.rate)
+      : sub.rate;
+    const material = (i===_mSubIdx)
+      ? (parseFloat(document.getElementById("m-material").value)||0)
+      : (sub.material||0);
+    const manualTuition = (i===_mSubIdx) && document.getElementById("m-tuition-manual").checked;
+    const totalHours = lessons.reduce((s,l)=>s+(parseFloat(l.hours)||0),0);
+    const tuitionFee = manualTuition
+      ? (parseInt(document.getElementById("m-tuition").value)||0)
+      : Math.round(totalHours * rate);
+    const total = tuitionFee + material;
+
+    // 依月份分組
+    const byMonth={};
+    lessons.forEach(l=>{
+      const ym=l.date.substring(0,7);
+      if(!byMonth[ym]) byMonth[ym]=[];
+      byMonth[ym].push(l);
+    });
+
+    const allMonths = months.length ? months
+      : [...new Set(lessons.map(l=>l.date.substring(0,7)))].sort();
+
+    const monthRows = allMonths.map(m=>{
+      const ml=byMonth[m]||[];
+      const weekdays=["日","一","二","三","四","五","六"];
+      return {
+        month:m, count:ml.length,
+        hours:ml.reduce((s,l)=>s+(parseFloat(l.hours)||0),0),
+        lessons:ml.map(l=>{const d=new Date(l.date+"T00:00:00");return{date:l.date,weekday:weekdays[d.getDay()],start:"",end:"",hours:parseFloat(l.hours)||0};}),
+        absentCount:0, absentDates:[]
+      };
+    });
+
+    return {subject:sub.subject,rate,material,note:"",monthRows,totalHours,tuitionFee,total,totalAbsent:0};
+  }).filter(Boolean);
+
+  if(!bills.length){ alert("請至少填入一個科目的課堂資料"); return; }
+
+  closeManualModal();
+  switchTab("bill",document.querySelector("[data-tab='bill']"));
+  const usedMonths = months.length ? months
+    : [...new Set(bills.flatMap(b=>b.monthRows.map(r=>r.month)))].sort();
+
+  // 儲存手動帳單資料供快照使用（含每堂明細）
+  window._lastManualBills = {
+    student: _mStudent.name,
+    months:  usedMonths,
+    bills:   bills.map(b=>({
+      subject:    b.subject,
+      rate:       b.rate,
+      totalHours: b.totalHours,
+      tuitionFee: b.tuitionFee,
+      material:   b.material,
+      total:      b.total,
+      // 攤平所有月份的課堂明細
+      lessons: (b.monthRows||[]).flatMap(mr=>(mr.lessons||[]).map(l=>({
+        date: l.date, weekday: l.weekday, hours: l.hours
+      })))
+    }))
+  };
+
+  renderBill({student:_mStudent.name,months:usedMonths,bills},"tab-bill",false,false);
+
+  // 清除舊的快照 bar 再加新的
+  ["cal-snap-bar","manual-snap-bar"].forEach(bid=>{
+    const old=document.getElementById(bid); if(old) old.remove();
+  });
+  const billArea = document.getElementById("tab-bill");
+  const snapBar  = document.createElement("div");
+  snapBar.id     = "manual-snap-bar";
+  snapBar.style.cssText = "display:flex;align-items:center;gap:.5rem;padding:.7rem 1.25rem;background:var(--blue-lt);border-bottom:1px solid rgba(26,74,122,.15);flex-wrap:wrap;";
+  snapBar.innerHTML = `
+    <span style="font-size:.8rem;color:var(--blue);font-weight:500">💡 手動開單可直接存快照</span>
+    <input type="text" id="manual-snap-name" placeholder="快照名稱（如：114下學期）"
+      style="flex:1;min-width:140px;padding:.32rem .6rem;border:1px solid rgba(26,74,122,.3);border-radius:5px;font-size:.82rem;font-family:var(--sans);background:white;color:var(--ink);outline:none;">
+    <button onclick="saveManualSnapshot()" class="btn btn-sm"
+      style="background:var(--blue);color:white;width:auto">存為快照</button>`;
+  billArea.insertBefore(snapBar, billArea.firstChild);
+}
+
+// 日曆學費單存快照（讀取就地編輯後的金額）
+async function saveCalendarSnapshot(student, monthsStr, containerId){
+  const container = containerId ? document.getElementById(containerId) : document;
+  const rawName=(container.querySelector("#cal-snap-name")||document.getElementById("cal-snap-name"))?.value.trim();
+  if(!rawName){alert("請輸入快照名稱");return;}
+  const name=student+"_"+rawName;
+
+  // 收集各科目的編輯後金額（只讀當前容器內的輸入框，避免個人單/團班單混淆）
+  const editedBills=[];
+  const actualMonthSet=new Set();
+  const scope = container.querySelectorAll ? container : document;
+
+  scope.querySelectorAll("[id^='inp_tuition_']").forEach(el=>{
+    const feeKey=el.id.replace("inp_tuition_","");
+    const matEl=document.getElementById("inp_mat_"+feeKey);
+    const hrEl=document.getElementById("inp_hours_"+feeKey);
+    const deltaEl=document.getElementById("inp_delta_"+feeKey);
+    const baseEl=document.getElementById("base_hours_"+feeKey);
+    const deltaHours=deltaEl?(parseFloat(deltaEl.value)||0):0;
+    const baseHours=baseEl?(parseFloat(baseEl.dataset.base)||0):0;
+    const tuition=parseInt(el.value)||0;          // 學費
+    const material=parseInt(matEl?matEl.value:0)||0; // 教材費
+    const totalAdjusted=tuition+material;          // 應收合計 = 學費 + 教材費
+    if(tuition===0&&material===0) return; // 金額為 0 的科目不存
+
+    // 從對應的 billData 取得正確科目名和時數
+    let subject="", totalHours=0, rate=0, lessons=[];
+    let srcData=window._currentBillData;
+    if(window._currentGroupBillData&&window._currentGroupBillData.student===student) srcData=window._currentGroupBillData;
+    else if(window._currentBillData&&window._currentBillData.student===student) srcData=window._currentBillData;
+    if(srcData&&srcData.bills){
+      // 用 feeKey 比對
+      srcData.bills.forEach(b=>{
+        const testKey=("fee_"+student+"_"+b.subject).replace(/[^a-zA-Z0-9_\u4e00-\u9fff]/g,"_");
+        if(testKey===feeKey){
+          subject=b.subject;
+          totalHours=hrEl?(parseFloat(hrEl.value)||b.totalHours):b.totalHours; // 用調整後的時數
+          rate=b.rate;
+          // 收集有課的月份
+          (b.monthRows||[]).forEach(mr=>{
+            if(mr.count>0) actualMonthSet.add(mr.month);
+          });
+          lessons=(b.monthRows||[]).flatMap(mr=>(mr.lessons||[]).map(l=>({date:l.date,weekday:l.weekday,hours:l.hours})));
+        }
+      });
+    }
+    editedBills.push({subject,rate,totalHours:baseHours||totalHours,deltaHours,tuitionFee:tuition,material,total:tuition+material,lessons});
+  });
+
+  if(!editedBills.length){alert("找不到帳單資料，請先產生學費單");return;}
+
+  // 用實際有課的月份，若抓不到則用傳入的月份
+  const finalMonths=actualMonthSet.size>0
+    ? [...actualMonthSet].sort().join(",")
+    : monthsStr;
+
+  try{
+    await apiCall({
+      action:"saveManualSnapshot",
+      name,
+      months:finalMonths,
+      student,
+      bills:JSON.stringify(editedBills),
+    });
+    // 一併存教材到快照教材
+    await saveMaterialsToSnapshot(name, student, editedBills);
+    alert("✅ 快照「"+name+"」已儲存！\n月份："+finalMonths.split(",").map(m=>parseInt(m.split("-")[1])+"月").join("、"));
+    document.getElementById("cal-snap-name").value="";
+    await loadSnapshots();
+  }catch(e){alert("❌ "+e.message);}
+}
+
+// 存快照時，收集畫面上各科目的教材，存進快照教材
+async function saveMaterialsToSnapshot(snapName, student, bills){
+  const allMaterials=[];
+  bills.forEach(b=>{
+    const mKey=(student+"_"+b.subject).replace(/[^a-zA-Z0-9_\u4e00-\u9fff]/g,"_");
+    const list=document.getElementById("mat_list_"+mKey);
+    if(!list) return;
+    list.querySelectorAll(".material-item").forEach(item=>{
+      const category=item.querySelector(".m-cat")?.value||"";
+      const nm=item.querySelector(".m-name")?.value||"";
+      const volume=item.querySelector(".m-vol")?.value||"";
+      if(nm) allMaterials.push({subject:b.subject,category,name:nm,volume});
+    });
+  });
+  if(allMaterials.length){
+    try{
+      await apiCall({action:"saveSnapMaterials",snapshot:snapName,student,materials:JSON.stringify(allMaterials)});
+    }catch(e){}
+  }
+}
+
+// 調整時數增減：點按鈕改變「調整時數」
+function adjustDeltaHours(feeKey, rate, step){
+  const deltaInp = document.getElementById("inp_delta_"+feeKey);
+  if(!deltaInp) return;
+  deltaInp.value = (parseFloat(deltaInp.value)||0) + step;
+  recalcFromDelta(feeKey, rate);
+}
+
+// 調整時數改變 → 實際時數 = 本期 + 調整 → 學費 = 實際 × 費率
+function recalcFromDelta(feeKey, rate){
+  const baseEl  = document.getElementById("base_hours_"+feeKey);
+  const deltaInp = document.getElementById("inp_delta_"+feeKey);
+  const hrHidden = document.getElementById("inp_hours_"+feeKey);
+  const hrDisp   = document.getElementById("inp_hours_"+feeKey+"_disp");
+  const tuInp    = document.getElementById("inp_tuition_"+feeKey);
+  if(!baseEl||!deltaInp) return;
+  const base  = parseFloat(baseEl.dataset.base)||0;
+  const delta = parseFloat(deltaInp.value)||0;
+  const actual = Math.max(0, base + delta);
+  if(hrHidden) hrHidden.value = actual;
+  if(hrDisp)   hrDisp.textContent = actual;
+  if(tuInp)    tuInp.value = Math.round(actual * rate);
+  updateBillTotal(feeKey);
+}
+
+// 就地編輯：學費 + 教材費 = 應收合計（教材費外加）
+function updateBillTotal(feeKey){
+  const totalEl = document.getElementById("total_"+feeKey);
+  const tuInp   = document.getElementById("inp_tuition_"+feeKey);
+  const matInp  = document.getElementById("inp_mat_"+feeKey);
+  if(!totalEl) return;
+  const tuition  = parseInt(tuInp?tuInp.value:0)||0;
+  const material = parseInt(matInp?matInp.value:0)||0;
+  const total = tuition+material;
+  // 黑底 badge 旁的合計
+  totalEl.textContent = total.toLocaleString()+" 元";
+  // 費用列的「學費」顯示
+  const tuDisp=document.getElementById("fee_tuition_disp_"+feeKey);
+  if(tuDisp) tuDisp.innerHTML=`學費 <span>${tuition.toLocaleString()} 元</span>`;
+  // 費用列的「教材費」顯示
+  const matDisp=document.getElementById("fee_mat_disp_"+feeKey);
+  if(matDisp){
+    matDisp.innerHTML=`教材費 <span>${material.toLocaleString()} 元</span>`;
+    matDisp.style.display=material>0?"":"none";
+  }
+  // 費用列右邊的大合計（fee-total）
+  const feeTotalEl=document.getElementById("total_"+feeKey);
+  if(feeTotalEl) feeTotalEl.textContent=total.toLocaleString()+" 元";
+  recalcGrandTotal();
+}
+
+function recalcGrandTotal(){
+  // 應收合計 = 所有科目（學費 + 教材費）加總
+  let grand = 0;
+  document.querySelectorAll("[id^='inp_tuition_']").forEach(el=>{
+    grand += parseInt(el.value)||0;
+  });
+  document.querySelectorAll("[id^='inp_mat_']").forEach(el=>{
+    grand += parseInt(el.value)||0;
+  });
+  const grandEl = document.querySelector("#bill-print-area .fee-total-grand, #bill-print-area [style*='1.4rem']");
+  if(grandEl) grandEl.textContent = grand.toLocaleString()+" 元";
+}
+
+// 收集就地編輯後的帳單資料（供快照使用）
+function collectEditedBills(){
+  const edited = [];
+  document.querySelectorAll("[id^='inp_total_']").forEach(el=>{
+    const feeKey = el.id.replace("inp_total_","");
+    const matEl  = document.getElementById("inp_mat_"+feeKey);
+    const tuition  = parseInt(el.value)||0;
+    const material = parseInt(matEl?matEl.value:0)||0;
+    // 從 feeKey 反推科目名（格式：fee_學生_科目）
+    const parts  = feeKey.split("_");
+    const subject = parts.slice(2).join("_"); // 科目可能含底線
+    edited.push({ feeKey, subject, tuitionFee:tuition, material, total:tuition+material });
+  });
+  return edited;
+}
+
+// 手動開單存快照
+async function saveManualSnapshot(){
+  const data = window._lastManualBills;
+  if(!data){ alert("請先產生手動學費單"); return; }
+  const rawName = document.getElementById("manual-snap-name").value.trim();
+  if(!rawName){ alert("請輸入快照名稱"); return; }
+  const name = data.student+"_"+rawName;
+
+  // 讀取畫面上的調整金額（若有修改則優先用修改後的值）
+  const finalBills = data.bills.map(b=>{
+    const feeKey=("fee_"+data.student+"_"+b.subject).replace(/[^a-zA-Z0-9_一-鿿]/g,"_");
+    const tuInp=document.getElementById("inp_tuition_"+feeKey);
+    const matInp=document.getElementById("inp_mat_"+feeKey);
+    const hrInp=document.getElementById("inp_hours_"+feeKey);
+    const tuition=tuInp ? (parseInt(tuInp.value)||0) : b.tuitionFee;
+    const material=matInp ? (parseInt(matInp.value)||0) : b.material;
+    const totalHours=hrInp ? (parseFloat(hrInp.value)||b.totalHours) : b.totalHours;
+    return {...b, tuitionFee:tuition, material, total:tuition+material, totalHours}; // 教材費外加
+  });
+
+  try{
+    await apiCall({
+      action:  "saveManualSnapshot",
+      name,
+      months:  data.months.join(","),
+      student: data.student,
+      bills:   JSON.stringify(finalBills),
+    });
+    await saveMaterialsToSnapshot(name, data.student, finalBills);
+    alert("✅ 快照「"+name+"」已儲存！");
+    document.getElementById("manual-snap-name").value="";
+    const bar=document.getElementById("manual-snap-bar");
+    if(bar) bar.remove();
+    await loadSnapshots();
+  }catch(e){ alert("❌ "+e.message); }
+}
+
+
+// ── 產生學費單 ──
+async function generateBill(){
+  const student=document.getElementById("student-select").value;
+  const range=getDateRange();
+  if(!student){showMsg("tab-bill","warn","請先選擇學生");return;}
+  if(range.mode==="month"&&!range.months.length){showMsg("tab-bill","warn","請選擇月份");return;}
+  if(range.mode==="date"&&(!range.start||!range.end)){showMsg("tab-bill","warn","請選擇開始和結束日期");return;}
+  if(range.mode==="date"&&range.start>range.end){showMsg("tab-bill","warn","開始日期不能晚於結束日期");return;}
+
+  switchTab("bill",document.querySelector('[data-tab="bill"]'));
+  document.getElementById("tab-bill").innerHTML=`<div class="loading">載入中<span class="spinner"></span></div>`;
+  try{
+    const billParams = range.mode==="date"
+      ? {action:"getBill",student,startDate:range.start,endDate:range.end}
+      : {action:"getBill",student,months:range.months.join(",")};
+    const data=await apiCall(billParams);
+    window._currentBillData=data;
+    renderBill(data,"tab-bill",false,false);
+
+    // 查詢學生所屬團班，若有則顯示「產生團班單」按鈕
+    try{
+      const gRes=await apiCall({action:"getStudentGroup",student});
+      const groups=gRes.groups||[];
+      window._studentGroups=groups;
+      if(groups.length){
+        const bar=document.createElement("div");
+        bar.style.cssText="display:flex;align-items:center;gap:.5rem;padding:.65rem 1.25rem;background:var(--purple-lt);border-top:1px solid rgba(91,45,142,.15);flex-wrap:wrap;";
+        bar.innerHTML=`<span style="font-size:.8rem;color:var(--purple);font-weight:500">👥 此學生所屬團班：${groups.join("、")}</span>`+
+          groups.map(g=>`<button onclick="generateGroupBill('${g}')" class="btn btn-sm" style="background:var(--purple);color:white;width:auto">產生「${g}」學費單</button>`).join("");
+        document.getElementById("tab-bill").appendChild(bar);
+      }
+    }catch(e){}
+  }catch(e){showMsg("tab-bill","err","❌ "+e.message);}
+}
+
+// 團班單匯出工具列
+function addGroupToolbar(areaId){
+  const area=document.getElementById(areaId);
+  if(!area) return;
+  const old=document.getElementById("group-toolbar");
+  if(old) old.remove();
+  const bar=document.createElement("div");
+  bar.id="group-toolbar";
+  bar.style.cssText="display:flex;align-items:center;gap:.5rem;padding:.65rem 1.25rem;background:var(--purple-lt);border-bottom:1px solid rgba(91,45,142,.15);flex-wrap:wrap;";
+  bar.innerHTML=`
+    <span style="font-size:.8rem;color:var(--purple);font-weight:500">👥 團班學費單</span>
+    <div style="flex:1"></div>
+    <button onclick="exportPNG()" class="btn btn-sm" style="background:var(--purple);color:white;width:auto">🖼 匯出圖片</button>
+    <button onclick="exportPDF()" class="btn btn-sm btn-outline" style="width:auto">⬇ PDF</button>
+    <button onclick="window.print()" class="btn btn-sm btn-outline" style="width:auto">🖨 列印</button>`;
+  area.insertBefore(bar, area.firstChild);
+}
+
+// 產生團班學費單（切到獨立分頁）
+async function generateGroupBill(groupName){
+  const range=getDateRange();
+  ensureGroupTab();
+  switchTab("group",document.querySelector('[data-tab="group"]'));
+  document.getElementById("tab-group").innerHTML=`<div class="loading">載入中<span class="spinner"></span></div>`;
+  try{
+    const params = range.mode==="date"
+      ? {action:"getBill",student:groupName,startDate:range.start,endDate:range.end}
+      : {action:"getBill",student:groupName,months:range.months.join(",")};
+    const data=await apiCall(params);
+    window._currentBillData=data; // 團班單也更新（存快照時用）
+    window._currentGroupBillData=data;
+    renderBill(data,"tab-group",false,false);
+    // 加匯出工具列
+    addGroupToolbar("tab-group");
+  }catch(e){showMsg("tab-group","err","❌ "+e.message);}
+}
+
+function ensureGroupTab(){
+  if(!document.querySelector('[data-tab="group"]')){
+    const t=document.createElement("div");
+    t.className="tab";t.dataset.tab="group";t.textContent="👥 團班單";
+    t.onclick=()=>switchTab("group",t);
+    document.getElementById("tab-bar").appendChild(t);
+  }
+  // 建立內容容器
+  if(!document.getElementById("tab-group")){
+    const c=document.createElement("div");
+    c.id="tab-group";c.className="bill-area";c.style.display="none";
+    // 放在 tab-history 後面（或 tab-bill 容器的父層）
+    const billArea=document.getElementById("tab-bill");
+    if(billArea&&billArea.parentNode) billArea.parentNode.appendChild(c);
+  }
+}
+
+// ── 查看歷史快照 ──
+async function viewSnapshot(snapName){
+  let student=document.getElementById("student-select").value;
+  if(!student){alert("請先選擇學生");return;}
+  // 若是團班快照（名稱以團班名開頭），改用團班名當 student
+  const groups=window._studentGroups||[];
+  for(const g of groups){
+    if(snapName.startsWith(g+"_")||snapName.startsWith(g+" ")||snapName===g){
+      student=g;
+      break;
+    }
+  }
+  _selectedSnap=snapName;
+
+  // 更新 history list 選中狀態
+  document.querySelectorAll(".history-item").forEach(el=>{
+    el.classList.toggle("active",el.dataset.snap===snapName);
+  });
+
+  // 切到 history 分頁
+  ensureHistoryTab();
+  switchTab("history",document.querySelector('[data-tab="history"]'));
+  document.getElementById("tab-history").innerHTML=`<div class="loading">載入快照中<span class="spinner"></span></div>`;
+
+  try{
+    // 直接讀取快照存的金額和明細（不再合併實際課程記錄）
+    const snap=await apiCall({action:"getSnapshotDetail",student,snapshot:snapName});
+
+    let bills;
+    if(snap.hasDetail){
+      // 有快照明細 → 直接用快照明細顯示
+      bills=snap.bills;
+    }else{
+      // 舊快照無明細 → 退回原本做法：用實際課程記錄顯示日期，金額用快照值
+      const actual=await apiCall({action:"getBill",student,months:snap.months.join(",")});
+      bills=snap.bills.map(sb=>{
+        const ab=actual.bills.find(b=>b.subject===sb.subject)||{};
+        return {
+          subject:    sb.subject,
+          rate:       sb.rate||ab.rate||0,
+          material:   sb.material,
+          tuitionFee: sb.tuitionFee,
+          total:      sb.total,
+          totalHours: sb.totalHours,
+          totalAbsent:ab.totalAbsent||0,
+          monthRows:  ab.monthRows||sb.monthRows||[],
+          note:       ab.note||"",
+        };
+      });
+    }
+    window._currentSnapBills=bills; // 供儲存修改使用
+    renderBill({student,months:snap.months,bills},"tab-history",false,true,snapName);
+    // 加快照預覽工具列（修改金額 + 匯出）
+    addHistoryToolbar("tab-history");
+  }catch(e){
+    showMsg("tab-history","err","❌ "+e.message);
+  }
+}
+
+// ── 產生退補單 ──
+async function generateRefund(){
+  const student=document.getElementById("student-select").value;
+  if(!student){alert("請先選擇學生");return;}
+  if(!_selectedSnap){alert("請先在快照列表中選擇一個快照");return;}
+  switchTab("refund",document.querySelector('[data-tab="refund"]'));
+  document.getElementById("tab-refund").innerHTML=`<div class="loading">計算中<span class="spinner"></span></div>`;
+  try{
+    const data=await apiCall({action:"getRefundDetail",student,snapshot:_selectedSnap});
+    if(data.hasSnapDetail){
+      renderRefundDetail(data,"tab-refund");
+    }else{
+      // 舊快照或手動快照（無明細），用金額比對
+      const oldData=await apiCall({action:"getRefund",student,snapshot:_selectedSnap});
+      renderBill(oldData,"tab-refund",true,false);
+    }
+  }catch(e){showMsg("tab-refund","err","❌ "+e.message);}
+}
+
+// ── 快照預覽工具列 ──
+function addHistoryToolbar(areaId){
+  const area = document.getElementById(areaId);
+  if(!area) return;
+
+  // 移除舊的工具列
+  const old = document.getElementById("history-toolbar");
+  if(old) old.remove();
+
+  const bar = document.createElement("div");
+  bar.id = "history-toolbar";
+  bar.style.cssText = "display:flex;align-items:center;gap:.5rem;padding:.65rem 1.25rem;background:var(--purple-lt);border-bottom:1px solid rgba(91,45,142,.15);flex-wrap:wrap;";
+  const snapName = _selectedSnap||"";
+  // 取得目前快照的繳費狀態
+  const snapInfo=(window._snapshots||[]).find(s=>(typeof s==="string"?s:s.name)===snapName)||{};
+  const isPaid=!!snapInfo.paid;
+  const paidDate=snapInfo.paidDate||new Date().toISOString().slice(0,10);
+
+  bar.innerHTML = `
+    <span style="font-size:.8rem;color:var(--purple);font-weight:500">📁 快照預覽</span>
+    <label style="display:flex;align-items:center;gap:.3rem;font-size:.78rem;color:${isPaid?'var(--green)':'var(--ink2)'};cursor:pointer;font-weight:${isPaid?'600':'400'}">
+      <input type="checkbox" id="paid-check" ${isPaid?"checked":""} onchange="togglePaidDate()" style="cursor:pointer">
+      已繳費
+    </label>
+    <input type="date" id="paid-date" value="${paidDate}" ${isPaid?"":"disabled"}
+      style="padding:.25rem .4rem;border:1px solid var(--border);border-radius:5px;font-size:.78rem;font-family:var(--sans);background:${isPaid?'white':'var(--paper2)'};color:var(--ink);outline:none;">
+    <div style="flex:1"></div>
+    <button onclick="saveHistoryEdits()" class="btn btn-sm btn-outline" style="width:auto;color:var(--purple);border-color:rgba(91,45,142,.3)">💾 儲存修改</button>
+    <button onclick="exportHistoryPNG()" class="btn btn-sm" style="background:var(--purple);color:white;width:auto">🖼 匯出圖片</button>
+    <button onclick="exportHistoryPDF()" class="btn btn-sm btn-outline" style="width:auto">⬇ PDF</button>`;
+  area.insertBefore(bar, area.firstChild);
+}
+
+// 切換繳費勾選 → 啟用/停用日期欄
+function togglePaidDate(){
+  const chk=document.getElementById("paid-check");
+  const dt=document.getElementById("paid-date");
+  if(!chk||!dt) return;
+  dt.disabled=!chk.checked;
+  dt.style.background=chk.checked?"white":"var(--paper2)";
+  if(chk.checked&&!dt.value) dt.value=new Date().toISOString().slice(0,10);
+  const lbl=chk.closest("label");
+  if(lbl){ lbl.style.color=chk.checked?"var(--green)":"var(--ink2)"; lbl.style.fontWeight=chk.checked?"600":"400"; }
+}
+
+// 儲存快照預覽的修改金額（更新試算表帳單快照分頁）
+async function saveHistoryEdits(){
+  const snapName = _selectedSnap;
+  let student = document.getElementById("student-select").value;
+  // 團班快照用團班名
+  const groups=window._studentGroups||[];
+  for(const g of groups){
+    if(snapName&&(snapName.startsWith(g+"_")||snapName.startsWith(g+" ")||snapName===g)){ student=g; break; }
+  }
+  if(!student||!snapName){ alert("找不到學生或快照資料"); return; }
+  if(!confirm("確定要更新快照「"+snapName+"」的金額？\n此操作會覆蓋試算表中的金額。")) return;
+
+  // 收集修改後的金額（用快照的科目清單反查，避免 feeKey 解析錯誤）
+  const updatedBills=[];
+  const snapBills=(window._currentSnapBills||[]);
+  snapBills.forEach(b=>{
+    const feeKey=("fee_"+student+"_"+b.subject).replace(/[^a-zA-Z0-9_一-鿿]/g,"_");
+    const tuInp=document.getElementById("inp_tuition_"+feeKey);
+    const matInp=document.getElementById("inp_mat_"+feeKey);
+    const deltaInp=document.getElementById("inp_delta_"+feeKey);
+    if(!tuInp) return;
+    const tuition=parseInt(tuInp.value)||0;
+    const material=parseInt(matInp?matInp.value:0)||0;
+    const deltaHours=deltaInp?(parseFloat(deltaInp.value)||0):0;
+    updatedBills.push({subject:b.subject,tuitionFee:tuition,material,total:tuition+material,deltaHours}); // 教材費外加
+  });
+
+  if(!updatedBills.length){ alert("找不到帳單資料"); return; }
+
+  try{
+    const d=await apiCall({
+      action:"updateSnapshotAmounts",
+      name:snapName,
+      student,
+      bills:JSON.stringify(updatedBills),
+    });
+    // 一併更新教材（收集快照預覽上所有科目的教材）
+    const allMaterials=[];
+    snapBills.forEach(b=>{
+      const mKey=(student+"_"+b.subject).replace(/[^a-zA-Z0-9_\u4e00-\u9fff]/g,"_");
+      const list=document.getElementById("mat_list_"+mKey);
+      if(!list) return;
+      list.querySelectorAll(".material-item").forEach(item=>{
+        const category=item.querySelector(".m-cat")?.value||"";
+        const nm=item.querySelector(".m-name")?.value||"";
+        const volume=item.querySelector(".m-vol")?.value||"";
+        if(nm) allMaterials.push({subject:b.subject,category,name:nm,volume});
+      });
+    });
+    try{
+      await apiCall({action:"saveSnapMaterials",snapshot:snapName,student,materials:JSON.stringify(allMaterials)});
+    }catch(e){}
+
+    // 一併更新繳費狀態
+    const paidChk=document.getElementById("paid-check");
+    const paidDt=document.getElementById("paid-date");
+    if(paidChk){
+      try{
+        await apiCall({
+          action:"updatePaidStatus",
+          name:snapName,
+          student,
+          paid:paidChk.checked?"true":"false",
+          paidDate:paidChk.checked?(paidDt?.value||""):"",
+        });
+      }catch(e){}
+    }
+
+    alert("✅ "+(d.message||"快照已更新！")+"\n（金額、教材、繳費狀態皆已儲存）");
+    await new Promise(r=>setTimeout(r,500));
+    await loadSnapshots();  // 重新載入列表更新繳費標記
+    viewSnapshot(snapName);
+  }catch(e){ alert("❌ "+e.message); }
+}
+
+async function exportHistoryPNG(){
+  const area = document.querySelector("#tab-history .bill-print-area-cls") || document.getElementById("bill-print-area");
+  if(!area){ alert("請先選擇快照"); return; }
+  const btn = event.target; btn.textContent="產生中…"; btn.disabled=true;
+  prepareNoteDisplay();
+  await new Promise(r=>setTimeout(r,60)); // 等備註 DOM 更新完成
+  try{
+    const wrapper = document.createElement("div");
+    wrapper.style.cssText = "position:fixed;left:-9999px;top:0;background:white;padding:24px;width:680px;font-family:'Noto Sans TC',sans-serif;";
+    const clone = area.cloneNode(true);
+    clone.querySelectorAll(".note-textarea,.note-save-row,.bill-edit-row,#history-toolbar,.material-hide").forEach(el=>el.remove());
+    clone.querySelectorAll(".note-display").forEach(el=>{el.style.display=el.classList.contains("has-note")?"block":"none";});
+    clone.querySelectorAll(".print-hide").forEach(el=>el.style.display="none");
+    clone.querySelectorAll(".export-hide").forEach(el=>el.style.display="none");
+    // 姓名 input 值複製
+    const nameInp = area.querySelector(".bill-name-input");
+    const cloneNameInp = clone.querySelector(".bill-name-input");
+    if(nameInp && cloneNameInp) cloneNameInp.value = nameInp.value;
+    clone.style.position="relative";
+    wrapper.appendChild(clone); document.body.appendChild(wrapper);
+    const canvas = await html2canvas(wrapper,{scale:2,useCORS:true,backgroundColor:"#ffffff",width:680,windowWidth:680});
+    document.body.removeChild(wrapper);
+    const imgData = canvas.toDataURL("image/png");
+    const nameVal = area.querySelector(".bill-name-input")?.value || "學費單";
+    const win = window.open("","_blank");
+    if(!win){ alert("請允許彈出視窗"); return; }
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${nameVal}_學費單</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>*{box-sizing:border-box;margin:0;padding:0;}body{background:#f0f0f0;display:flex;flex-direction:column;align-items:center;padding:16px;gap:12px;}.tb{display:flex;gap:8px;padding:10px 16px;background:white;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.12);width:100%;max-width:720px;align-items:center;justify-content:space-between;}.tb span{font-size:13px;color:#555;font-family:sans-serif;}.tb a{padding:7px 16px;background:#5b2d8e;color:white;border-radius:6px;text-decoration:none;font-size:13px;font-family:sans-serif;}img{max-width:100%;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.15);}p{font-size:12px;color:#888;font-family:sans-serif;text-align:center;}</style></head>
+<body><div class="tb"><span>📱 手機長按圖片儲存</span><a href="${imgData}" download="${nameVal}_學費單.png">⬇ 下載</a></div>
+<img src="${imgData}"><p>電腦可右鍵→另存圖片，或點下載</p></body></html>`);
+    win.document.close();
+  }catch(e){ alert("圖片失敗："+e.message); }
+  finally{ btn.textContent="🖼 匯出圖片"; btn.disabled=false; restoreEditDisplay(); }
+}
+
+async function exportHistoryPDF(){
+  const area = document.querySelector("#tab-history .bill-print-area-cls") || document.getElementById("bill-print-area");
+  if(!area){ alert("請先選擇快照"); return; }
+  const btn = event.target; btn.textContent="產生中…"; btn.disabled=true;
+  prepareNoteDisplay();
+  await new Promise(r=>setTimeout(r,60));
+  try{
+    const canvas = await html2canvas(area,{scale:2,useCORS:true,backgroundColor:"#ffffff"});
+    const{jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+    const W=pdf.internal.pageSize.getWidth(),H=pdf.internal.pageSize.getHeight();
+    const imgH=(canvas.height*W)/canvas.width;
+    let y=0;
+    while(y<imgH){if(y>0)pdf.addPage();pdf.addImage(canvas.toDataURL("image/png"),"PNG",0,-y,W,imgH);y+=H;}
+    const nameVal = area.querySelector(".bill-name-input")?.value || "學費單";
+    pdf.save(`${nameVal}_學費單.pdf`);
+  }catch(e){ alert("PDF 失敗："+e.message); }
+  finally{ btn.textContent="⬇ PDF"; btn.disabled=false; restoreEditDisplay(); }
+}
+
+// ── 退補明細渲染 ──
+function renderRefundDetail(data, id){
+  const area=document.getElementById(id);
+  const months=data.months||[];
+  const mLabel=months.map(m=>{const[y,mo]=m.split("-");return y+"年"+parseInt(mo)+"月";}).join("、");
+
+  let html=`<div id="bill-print-area" class="watermark-wrap">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)">
+      <div>
+        <input id="bill-student-name-input" type="text" value="${data.student}" class="bill-name-input">
+        <div style="font-size:.77rem;color:var(--ink3);margin-top:.1rem">${mLabel} 退補明細　快照：${data.snapName}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:.73rem;color:var(--ink3)">退補金額</div>
+        <div style="font-family:var(--serif);font-size:1.4rem;font-weight:700;color:${data.totalDiff<0?"var(--blue)":data.totalDiff>0?"var(--red)":"var(--green)"}">
+          ${data.totalDiff===0?"±0":((data.totalDiff>0?"+":"")+data.totalDiff.toLocaleString())} <span style="font-size:.8rem;font-weight:400">元</span>
+        </div>
+        <div style="font-size:.73rem;color:var(--ink3)">${data.totalDiffType==="平衡"?"":"（"+data.totalDiffType+"）"}</div>
+      </div>
+    </div>`;
+
+  data.results.forEach(r=>{
+    const diffColor=r.diff<0?"var(--blue)":r.diff>0?"var(--red)":"var(--green)";
+    const diffLabel=r.diffType==="平衡"?"±0 元":((r.diff>0?"+":"")+r.diff.toLocaleString())+" 元";
+
+    html+=`<div class="bill-card">
+      <div class="bill-card-head">
+        <div class="subject">${r.subject}</div>
+        <div class="total-badge" style="background:${r.diff===0?"rgba(255,255,255,.15)":r.diff<0?"#1a4a7a":"#c0392b"}">${diffLabel}</div>
+      </div>
+      <table class="bill-table">
+        <thead><tr>
+          <th style="width:90px">項目</th>
+          <th style="width:50px;text-align:right">堂數</th>
+          <th style="width:75px;text-align:right">時數</th>
+          <th style="text-align:right">金額</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="color:var(--ink3);font-size:.8rem">快照（預收）</td>
+            <td class="num">${r.snapCount}</td>
+            <td class="num">${r.snapHours.toFixed(2)}</td>
+            <td class="num">${r.snapTotal.toLocaleString()} 元</td>
+          </tr>
+          <tr>
+            <td style="color:var(--ink3);font-size:.8rem">實際上課</td>
+            <td class="num">${r.actualCount}</td>
+            <td class="num">${r.actualHours.toFixed(2)}</td>
+            <td class="num">${r.actualTotal.toLocaleString()} 元</td>
+          </tr>
+        </tbody>
+      </table>`;
+
+    // 差異明細
+    if(r.hasDiff){
+      html+=`<div style="padding:.65rem 1.25rem;border-top:1px solid var(--border);background:var(--paper)">
+        <div style="font-size:.75rem;font-weight:600;color:var(--ink2);margin-bottom:.45rem;letter-spacing:.04em">差異明細</div>`;
+
+      if(r.removed.length){
+        html+=`<div style="margin-bottom:.45rem">
+          <div style="font-size:.73rem;color:var(--orange);margin-bottom:.25rem">📌 停課／未上（${r.removed.length} 堂）</div>
+          <div style="font-size:.8rem;color:var(--ink2);display:flex;flex-wrap:wrap;gap:.35rem">`;
+        r.removed.forEach(l=>{
+          const d=new Date(l.date+"T00:00:00");
+          html+=`<span style="padding:.15rem .45rem;background:var(--orange-lt);border-radius:4px;white-space:nowrap">${d.getMonth()+1}/${d.getDate()}(${l.weekday}) ${l.snapHours}h</span>`;
+        });
+        html+=`</div></div>`;
+      }
+
+      if(r.added.length){
+        html+=`<div style="margin-bottom:.45rem">
+          <div style="font-size:.73rem;color:var(--green);margin-bottom:.25rem">✅ 加課（${r.added.length} 堂）</div>
+          <div style="font-size:.8rem;color:var(--ink2);display:flex;flex-wrap:wrap;gap:.35rem">`;
+        r.added.forEach(l=>{
+          const d=new Date(l.date+"T00:00:00");
+          html+=`<span style="padding:.15rem .45rem;background:var(--green-lt);border-radius:4px;white-space:nowrap">${d.getMonth()+1}/${d.getDate()}(${l.weekday}) ${l.actualHours}h</span>`;
+        });
+        html+=`</div></div>`;
+      }
+
+      if(r.changed.length){
+        html+=`<div style="margin-bottom:.45rem">
+          <div style="font-size:.73rem;color:var(--purple);margin-bottom:.25rem">🔄 時數變更（${r.changed.length} 堂）</div>
+          <div style="font-size:.8rem;color:var(--ink2);display:flex;flex-wrap:wrap;gap:.35rem">`;
+        r.changed.forEach(l=>{
+          const d=new Date(l.date+"T00:00:00");
+          html+=`<span style="padding:.15rem .45rem;background:var(--purple-lt);border-radius:4px;white-space:nowrap">${d.getMonth()+1}/${d.getDate()}(${l.weekday}) ${l.snapHours}h→${l.actualHours}h</span>`;
+        });
+        html+=`</div></div>`;
+      }
+      html+=`</div>`;
+    }else{
+      html+=`<div style="padding:.5rem 1.25rem;border-top:1px solid var(--border);font-size:.78rem;color:var(--green)">✓ 無差異</div>`;
+    }
+
+    html+=`<div class="bill-fee-block">
+      <div class="fee-item">費率 <span>${r.rate.toLocaleString()} 元/hr</span></div>
+      <div class="refund-badge ${r.diffType==="退款"?"refund":r.diffType==="補繳"?"supplement":"balance"}">
+        ${r.diffType==="退款"?"▼":r.diffType==="補繳"?"▲":"●"} ${r.diffType} ${r.diffAbs.toLocaleString()} 元
+      </div>
+    </div>
+    </div>`;
+  });
+
+  // 合計列
+  html+=`<div style="display:flex;justify-content:flex-end;align-items:center;gap:.75rem;padding:.85rem 0;border-top:2px solid var(--border);margin-top:.5rem">
+    <div class="fee-item">預收合計 <span>${data.totalSnapTotal.toLocaleString()} 元</span></div>
+    <div class="fee-item">實際合計 <span>${data.totalActualTotal.toLocaleString()} 元</span></div>
+    <div class="refund-badge ${data.totalDiffType==="退款"?"refund":data.totalDiffType==="補繳"?"supplement":"balance"}" style="font-size:.9rem;padding:.35rem .9rem">
+      ${data.totalDiffType==="退款"?"▼":data.totalDiffType==="補繳"?"▲":"●"} ${data.totalDiffType} ${data.totalDiffAbs.toLocaleString()} 元
+    </div>
+  </div>
+
+  <div class="bill-signature">YuanShih 源石學館</div></div>`;
+  area.innerHTML=html;
+}
+
+// ── 渲染學費單 ──
+function renderBill(data,id,isRefund,isHistory,snapName){
+  const area=document.getElementById(id);
+  if(!data.bills||!data.bills.length){
+    area.innerHTML=`<div class="empty-state"><div class="icon">🔍</div><p>找不到課程記錄</p></div>`;return;
+  }
+  const months=data.months||[];
+  const grand=data.bills.reduce((s,b)=>s+b.total,0);
+
+  let html=`<div id="bill-print-area" class="watermark-wrap bill-print-area-cls">`;
+
+  // 標題列
+  html+=`<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)">
+    <div>
+      <div style="display:flex;align-items:center;gap:.5rem">
+        <span style="font-family:var(--serif);font-size:1.15rem;font-weight:700">${data.student}</span>
+        ${isHistory?`<span class="mode-badge history export-hide">📁 快照：${snapName}</span>`:
+          isRefund?`<span class="mode-badge" style="background:var(--blue-lt);color:var(--blue)">↕ 退補單</span>`:
+          ``}
+      </div>
+      <div style="font-size:.77rem;color:var(--ink3);margin-top:.1rem">
+        ${months.map(m=>{const[y,mo]=m.split("-");return y+"年"+parseInt(mo)+"月";}).join("、")}
+        ${isRefund?" 退補單":isHistory?` 學費單<span class="export-hide">（快照）</span>`:" 學費單"}
+      </div>
+    </div>
+    ${!isRefund?`<div style="text-align:right" class="print-hide"><div style="font-size:.73rem;color:var(--ink3)">${isHistory?"預收合計":"應收合計"}</div><div style="font-family:var(--serif);font-size:1.4rem;font-weight:700">${grand.toLocaleString()} <span style="font-size:.8rem;font-weight:400">元</span></div></div>`:""}
+  </div>`;
+
+  // 過濾掉沒上課的科目（0 堂且金額 0），但退補單和快照預覽保留
+  const visibleBills = (isRefund||isHistory)
+    ? data.bills
+    : data.bills.filter(b=>(b.totalHours>0)||(b.total>0)||(b.tuitionFee>0));
+  // 檢查是否有未設費率的科目
+  const hasNoRate=visibleBills.some(b=>b.rateNotSet);
+  if(hasNoRate&&!isRefund&&!isHistory){
+    html+=`<div style="padding:.6rem 1rem;background:#fdeaea;border:1px solid #f0b0b0;border-radius:8px;margin-bottom:.8rem;font-size:.82rem;color:#c0392b">
+      ⚠ 有科目未在「學生資料」設定費率，費率顯示為 0，請確認 ${data.student} 的資料是否完整。</div>`;
+  }
+  visibleBills.forEach(b=>{html+=renderCard(b,months,isRefund,data.student,isHistory);});
+  html+=`<div class="bill-signature">YuanShih 源石學館</div>`;
+  html+=`</div>`;
+  area.innerHTML=html;
+
+  // 學費單加快照存入列（個人單 tab-bill 或團班單 tab-group）
+  if(!isRefund&&!isHistory&&(id==="tab-bill"||id==="tab-group")){
+    ["cal-snap-bar","manual-snap-bar"].forEach(bid=>{
+      const old=document.getElementById(bid); if(old) old.remove();
+    });
+    const snapBar=document.createElement("div");
+    snapBar.id="cal-snap-bar";
+    snapBar.style.cssText="display:flex;align-items:center;gap:.5rem;padding:.65rem 1.25rem;background:var(--green-lt);border-top:1px solid rgba(26,92,58,.15);flex-wrap:wrap;";
+    const mStr=months.join(",");
+    const st=data.student;
+    snapBar.innerHTML=`
+      <span style="font-size:.8rem;color:var(--green);font-weight:500">📌 確認無誤後可存為快照</span>
+      <input type="text" id="cal-snap-name" placeholder="快照名稱（如：114下學期）"
+        style="flex:1;min-width:140px;padding:.32rem .6rem;border:1px solid rgba(26,92,58,.25);border-radius:5px;font-size:.82rem;font-family:var(--sans);background:white;color:var(--ink);outline:none;">
+      <button onclick="saveCalendarSnapshot('${st}','${mStr}','${id}')"
+        class="btn btn-sm" style="background:var(--green);color:white;width:auto">存為快照</button>`;
+    area.appendChild(snapBar);
+  }
+
+  // 備註（歷史快照也載入）
+  if(!isRefund){
+    data.bills.forEach(b=>{
+      const key=`${data.student}_${b.subject}`;
+      loadNoteForCard(key,data.student,months,b.subject);
+      autoResize(document.getElementById("ta_"+key));
+      // 載入教材明細（學費單/團班單用共用教材；快照預覽用快照教材）
+      const mKey=`${data.student}_${b.subject}`.replace(/[^a-zA-Z0-9_\u4e00-\u9fff]/g,"_");
+      loadMaterialsForCard(mKey,data.student,b.subject,isHistory?snapName:null);
+    });
+  }
+}
+
+function renderCard(bill,months,isRefund,student,isHistory){
+  let rows=months.map(m=>{
+    const row=(bill.monthRows||[]).find(r=>r.month===m)||{count:0,hours:0,lessons:[],absentCount:0,absentDates:[]};
+    const[y,mo]=m.split("-");
+    const dates=(row.lessons||[]).map(l=>{
+      const d=new Date(l.date+"T00:00:00");
+      const hrs=parseFloat(l.hours)||0;
+      return`${d.getMonth()+1}/${d.getDate()}(${l.weekday||""})${hrs%1===0?hrs.toFixed(0):hrs}h`;
+    }).join("　");
+    const absent=row.absentCount>0?`<div><span class="absent-tag">📌 請假：${row.absentDates.join("、")}</span></div>`:"";
+    return`<tr><td style="font-weight:500;white-space:nowrap">${y}/${parseInt(mo)}月</td><td class="num">${row.count}</td><td><span class="dates-cell">${dates}</span>${absent}</td><td class="num">${row.hours.toFixed(2)}</td></tr>`;
+  }).join("");
+
+  rows+=`<tr class="total-row"><td colspan="3" style="text-align:right;font-size:.79rem">合計時數</td><td class="num" style="white-space:nowrap">${bill.totalHours.toFixed(2)} hr</td></tr>`;
+  if(bill.totalAbsent>0) rows+=`<tr class="total-row"><td colspan="4" style="text-align:right;font-size:.75rem;color:var(--orange)">請假 ${bill.totalAbsent} 次（已扣除）</td></tr>`;
+
+  // 每張卡片用 subject 當 key，供就地編輯使用
+  const feeKey=`fee_${student}_${bill.subject}`.replace(/[^a-zA-Z0-9_一-鿿]/g,"_");
+
+  let fee=`<div class="bill-fee-block">
+    <div class="fee-item">費率 <span>${bill.rate.toLocaleString()} 元/hr</span>${bill.rateNotSet?'<span style="color:var(--red);font-size:.72rem;margin-left:.3rem;font-weight:600">⚠ 未設定費率</span>':''}</div>
+    <div class="fee-item" id="fee_tuition_disp_${feeKey}">學費 <span>${bill.tuitionFee.toLocaleString()} 元</span></div>
+    <div class="fee-item" id="fee_mat_disp_${feeKey}" style="${bill.material>0?'':'display:none'}">教材費 <span>${(bill.material||0).toLocaleString()} 元</span></div>`;
+  if(isRefund){
+    const cls=bill.diffType==="退款"?"refund":bill.diffType==="補繳"?"supplement":"balance";
+    const icon=bill.diffType==="退款"?"▼":bill.diffType==="補繳"?"▲":"●";
+    fee+=`<div class="fee-item">預收 <span>${(bill.prevTotal||0).toLocaleString()} 元</span></div>
+      <div class="fee-item">實際 <span>${bill.total.toLocaleString()} 元</span></div>
+      <div class="refund-badge ${cls}">${icon} ${bill.diffType} ${bill.diffAbs.toLocaleString()} 元</div>`;
+    fee+=`</div>`;
+  }else{
+    // 非退補單（含快照預覽）：加就地編輯區（教材費外加）
+    fee+=`<div class="fee-total" id="total_${feeKey}">${bill.total.toLocaleString()} 元</div>
+    </div>
+    <div class="bill-edit-row" id="edit_${feeKey}">
+      <div class="fee-item" style="gap:.25rem">
+        <span style="font-size:.78rem;color:var(--ink2)">本期</span>
+        <span id="base_hours_${feeKey}" data-base="${bill.totalHours}" style="font-size:.82rem;font-weight:600;color:var(--ink)">${bill.totalHours}</span>
+        <span style="font-size:.72rem;color:var(--ink3)">hr</span>
+      </div>
+      <div class="fee-item" style="gap:.25rem">
+        <span style="font-size:.78rem;color:var(--purple)">調整</span>
+        <button type="button" onclick="adjustDeltaHours('${feeKey}',${bill.rate},-0.5)" class="hr-btn">－</button>
+        <input type="number" id="inp_delta_${feeKey}" value="${bill.deltaHours||0}"
+          step="0.5" onchange="recalcFromDelta('${feeKey}',${bill.rate})"
+          style="width:56px;padding:.28rem .4rem;border:1px solid var(--purple);border-radius:5px;font-size:.82rem;font-family:var(--sans);text-align:right;background:var(--paper);color:var(--purple);outline:none;">
+        <button type="button" onclick="adjustDeltaHours('${feeKey}',${bill.rate},0.5)" class="hr-btn">＋</button>
+        <span style="font-size:.72rem;color:var(--ink3)">hr</span>
+      </div>
+      <div class="fee-item" style="gap:.25rem">
+        <span style="font-size:.78rem;color:var(--ink2)">實際</span>
+        <span id="inp_hours_${feeKey}_disp" style="font-size:.82rem;font-weight:600;color:var(--green)">${bill.totalHours+(bill.deltaHours||0)}</span>
+        <input type="hidden" id="inp_hours_${feeKey}" value="${bill.totalHours+(bill.deltaHours||0)}">
+        <span style="font-size:.72rem;color:var(--ink3)">hr</span>
+      </div>
+      <div class="fee-item" style="gap:.3rem">
+        <span style="font-size:.78rem;color:var(--ink2)">學費</span>
+        <input type="number" id="inp_tuition_${feeKey}" value="${bill.tuitionFee}"
+          min="0" step="50" onchange="updateBillTotal('${feeKey}')"
+          style="width:80px;padding:.28rem .45rem;border:1px solid var(--border);border-radius:5px;font-size:.82rem;font-family:var(--sans);text-align:right;background:var(--paper);color:var(--ink);outline:none;">
+        <span style="font-size:.78rem;color:var(--ink3)">元</span>
+      </div>
+      <div class="fee-item" style="gap:.3rem">
+        <span style="font-size:.78rem;color:var(--ink2)">教材費</span>
+        <input type="number" id="inp_mat_${feeKey}" value="${bill.material||0}"
+          min="0" step="50" onchange="updateBillTotal('${feeKey}')"
+          style="width:70px;padding:.28rem .45rem;border:1px solid var(--border);border-radius:5px;font-size:.82rem;font-family:var(--sans);text-align:right;background:var(--paper);color:var(--ink);outline:none;">
+        <span style="font-size:.78rem;color:var(--ink3)">元</span>
+      </div>
+    </div>`;
+  }
+  // （快照預覽的編輯列已在上方 else 分支處理，這裡不重複加）
+
+  // 備註欄（退補單不顯示）
+  let noteBlock="";
+  if(!isRefund){
+    const key=`${student}_${bill.subject}`;
+    noteBlock=`<div class="bill-note-row">
+      <span class="bill-note-label">備註</span>
+      <div class="bill-note-content">
+        <div class="note-display" id="dp_${key}"></div>
+        <textarea class="note-textarea" id="ta_${key}" rows="2"
+          placeholder="輸入給家長的說明，如：3/15 請假、4/2 調課補至 4/9…"
+          oninput="autoResize(this)"></textarea>
+        <div class="note-save-row">
+          <span class="note-status" id="st_${key}">✓ 已儲存</span>
+          <button class="btn btn-outline btn-sm" onclick="saveCardNote('${key}','${student}','${bill.subject}')">儲存備註</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // 教材明細區（只管理用，匯出隱藏）─ 學費單、團班單、快照預覽都可編輯
+  let materialBlock="";
+  if(!isRefund){
+    const mKey=`${student}_${bill.subject}`.replace(/[^a-zA-Z0-9_\u4e00-\u9fff]/g,"_");
+    materialBlock=`<div class="material-row material-hide" id="mat_row_${mKey}"
+      data-student="${student}" data-subject="${bill.subject}">
+      <div class="material-head">
+        <span>📚 教材明細（僅供記錄，不會給家長看）</span>
+        <button class="btn btn-outline btn-sm" onclick="addMaterialRow('${mKey}')" style="width:auto">＋ 新增</button>
+      </div>
+      <div id="mat_list_${mKey}" class="material-list"></div>
+      <div class="material-save">
+        <span class="note-status" id="mat_st_${mKey}">✓ 已儲存</span>
+        <button class="btn btn-outline btn-sm" onclick="saveMaterials('${mKey}','${student}','${bill.subject}')" style="width:auto">儲存教材</button>
+      </div>
+    </div>`;
+  }
+
+  return`<div class="bill-card">
+    <div class="bill-card-head">
+      <div class="subject">${bill.subject}</div>
+      ${!isRefund?`<div class="total-badge print-hide">${bill.total.toLocaleString()} 元</div>`:""}
+    </div>
+    <table class="bill-table">
+      <thead><tr>
+        <th style="width:80px;white-space:nowrap">月份</th>
+        <th style="width:42px;text-align:right">堂數</th>
+        <th>上課日期</th>
+        <th style="width:62px;text-align:right">時數</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    ${fee}${noteBlock}${materialBlock}
+  </div>`;
+}
+
+// ── 教材明細 ──
+let _bookList=[]; // 全域書單快取
+
+async function loadBookList(){
+  if(_bookList.length) return _bookList;
+  try{
+    const d=await apiCall({action:"getBookList"});
+    _bookList=d.books||[];
+  }catch(e){ _bookList=[]; }
+  return _bookList;
+}
+
+// 產生一筆教材列的 HTML
+function materialItemHTML(mKey, idx, data={}){
+  // 分類從書單動態取得（去重複），若書單為空則用預設
+  let cats=[...new Set(_bookList.map(b=>b.category).filter(c=>c))];
+  if(!cats.length) cats=["國小","國中","高中","其他"];
+  const cat=data.category||cats[0];
+  // 若既有資料的分類不在清單中，補進去避免顯示不出來
+  if(cat&&!cats.includes(cat)) cats.push(cat);
+  const booksInCat=_bookList.filter(b=>b.category===cat);
+  return `<div class="material-item" data-idx="${idx}">
+    <select class="m-cat" onchange="onMatCatChange('${mKey}',${idx})">
+      ${cats.map(c=>`<option value="${c}" ${c===cat?"selected":""}>${c}</option>`).join("")}
+    </select>
+    <select class="m-name">
+      <option value="">— 選書名 —</option>
+      ${booksInCat.map(b=>`<option value="${b.name}" ${b.name===data.name?"selected":""}>${b.name}</option>`).join("")}
+      ${data.name&&!booksInCat.find(b=>b.name===data.name)?`<option value="${data.name}" selected>${data.name}</option>`:""}
+    </select>
+    <input type="text" class="m-vol" placeholder="第幾冊" value="${data.volume||""}">
+    <button class="m-del" onclick="this.closest('.material-item').remove()" title="刪除">✕</button>
+  </div>`;
+}
+
+// 分類改變 → 更新書名選項
+function onMatCatChange(mKey, idx){
+  const item=document.querySelector(`#mat_list_${mKey} .material-item[data-idx="${idx}"]`);
+  if(!item) return;
+  const cat=item.querySelector(".m-cat").value;
+  const nameSel=item.querySelector(".m-name");
+  const booksInCat=_bookList.filter(b=>b.category===cat);
+  nameSel.innerHTML=`<option value="">— 選書名 —</option>`+
+    booksInCat.map(b=>`<option value="${b.name}">${b.name}</option>`).join("");
+}
+
+// 新增一筆教材列
+function addMaterialRow(mKey){
+  const list=document.getElementById("mat_list_"+mKey);
+  if(!list) return;
+  const idx=Date.now();
+  list.insertAdjacentHTML("beforeend", materialItemHTML(mKey, idx));
+}
+
+// 載入學生某科目的教材（snapName 有值 = 讀快照教材，否則讀共用教材）
+async function loadMaterialsForCard(mKey, student, subject, snapName){
+  await loadBookList();
+  const list=document.getElementById("mat_list_"+mKey);
+  if(!list) return;
+  try{
+    let items;
+    if(snapName){
+      const d=await apiCall({action:"getSnapMaterials",snapshot:snapName,student});
+      items=(d.materials||[]).filter(m=>m.subject===subject);
+    }else{
+      const d=await apiCall({action:"getMaterials",student});
+      items=(d.materials||[]).filter(m=>m.subject===subject);
+    }
+    list.innerHTML="";
+    items.forEach(m=>{
+      const idx=Date.now()+Math.random();
+      list.insertAdjacentHTML("beforeend", materialItemHTML(mKey, idx, m));
+    });
+  }catch(e){}
+}
+
+// 儲存教材（判斷是否在快照預覽：是則存快照教材，否則存共用教材）
+async function saveMaterials(mKey, student, subject){
+  const list=document.getElementById("mat_list_"+mKey);
+  if(!list) return;
+  const items=[];
+  list.querySelectorAll(".material-item").forEach(item=>{
+    const category=item.querySelector(".m-cat").value;
+    const name=item.querySelector(".m-name").value;
+    const volume=item.querySelector(".m-vol").value;
+    if(name) items.push({subject,category,name,volume});
+  });
+
+  // 判斷是否在快照預覽分頁
+  const historyTab=document.getElementById("tab-history");
+  const inHistory=historyTab&&historyTab.style.display!=="none"&&historyTab.contains(list);
+
+  try{
+    if(inHistory&&_selectedSnap){
+      // 存到快照教材：先取該快照該學生其他科目，合併
+      const d=await apiCall({action:"getSnapMaterials",snapshot:_selectedSnap,student});
+      const others=(d.materials||[]).filter(m=>m.subject!==subject);
+      const all=[...others,...items];
+      await apiCall({action:"saveSnapMaterials",snapshot:_selectedSnap,student,materials:JSON.stringify(all)});
+    }else{
+      // 存共用教材
+      const d=await apiCall({action:"getMaterials",student});
+      const others=(d.materials||[]).filter(m=>m.subject!==subject);
+      const all=[...others,...items];
+      await apiCall({action:"saveMaterials",student,materials:JSON.stringify(all)});
+    }
+    const st=document.getElementById("mat_st_"+mKey);
+    if(st){st.classList.add("show");setTimeout(()=>st.classList.remove("show"),2000);}
+    alert("✅ 教材已儲存");
+  }catch(e){ alert("❌ "+e.message); }
+}
+
+// ── 備註 ──
+async function loadNoteForCard(key,student,months,subject){
+  try{
+    const d=await apiCall({action:"getNotes",student,months:months.join(",")});
+    const note=(d.notes||[]).find(n=>String(n.student).trim()===student&&n.subject===subject&&n.date==="summary");
+    const text=note?note.note:(_noteCache[key]||"");
+    const ta=document.getElementById("ta_"+key);
+    const dp=document.getElementById("dp_"+key);
+    if(ta){ta.value=text;autoResize(ta);}
+    if(dp){dp.textContent=text;dp.classList.toggle("has-note",!!text);}
+  }catch(e){}
+}
+async function saveCardNote(key,student,subject){
+  const ta=document.getElementById("ta_"+key);
+  const st=document.getElementById("st_"+key);
+  const dp=document.getElementById("dp_"+key);
+  if(!ta)return;
+  const note=ta.value.trim();
+  try{
+    await apiCall({action:"saveNote",student,date:"summary",subject,note});
+    _noteCache[key]=note;
+    if(dp){dp.textContent=note;dp.classList.toggle("has-note",!!note);}
+    if(st){st.classList.add("show");setTimeout(()=>st.classList.remove("show"),2000);}
+  }catch(e){alert("儲存失敗："+e.message);}
+}
+function autoResize(el){if(!el)return;el.style.height="auto";el.style.height=Math.max(el.scrollHeight,52)+"px";}
+
+// ── 快照列表 ──
+async function loadSnapshots(){
+  try{
+    const d=await apiCall({action:"getSnapshots"});
+    window._snapshots=d.snapshots||[]; // [{name, students[], months}]
+    filterAndRenderSnapshots();
+  }catch(e){}
+}
+
+// 根據目前選中學生篩選快照
+function filterAndRenderSnapshots(){
+  const student=document.getElementById("student-select").value;
+  const all=window._snapshots||[];
+  const groups=window._studentGroups||[]; // 該學生所屬團班
+
+  const normalized=all.map(s=>typeof s==="string"?{name:s,students:[],months:""}:s);
+
+  let filtered;
+  if(!student){
+    filtered=normalized.map(s=>({...s,_type:"personal"}));
+  }else{
+    filtered=[];
+    normalized.forEach(s=>{
+      const name=s.name||"";
+      // 個人快照
+      if(name.startsWith(student+"_")||name.startsWith(student+" ")||name===student){
+        filtered.push({...s,_type:"personal"});
+        return;
+      }
+      // 團班快照（該學生所屬團班名下）
+      for(const g of groups){
+        if(name.startsWith(g+"_")||name.startsWith(g+" ")||name===g){
+          filtered.push({...s,_type:"group",_groupName:g});
+          return;
+        }
+      }
+    });
+  }
+
+  renderHistoryList(filtered);
+}
+
+function renderHistoryList(snapshots){
+  const el=document.getElementById("history-list");
+  const student=document.getElementById("student-select").value;
+  if(!snapshots||!snapshots.length){
+    const msg=student?"此學生尚無快照":"尚無快照";
+    el.innerHTML=`<div style="padding:1rem;text-align:center;font-size:.8rem;color:var(--ink3)">${msg}</div>`;
+    return;
+  }
+
+  const renderItem=(s)=>{
+    const name=typeof s==="string"?s:s.name;
+    const months=s.months||"";
+    const monthLabel=months?months.split(",").map(m=>parseInt(m.split("-")[1])+"月").join("、"):"";
+    const isGroup=s._type==="group";
+    // 顯示名稱：去掉學生名或團班名前綴
+    let prefix=isGroup?(s._groupName+"_"):(student?student+"_":"");
+    const displayName=(prefix&&name.startsWith(prefix))?name.slice(prefix.length):name;
+    const paidBadge=s.paid
+      ? `<span style="color:var(--green);font-size:.7rem;font-weight:600">✅ 已繳${s.paidDate?" "+s.paidDate.slice(5):""}</span>`
+      : `<span style="color:var(--ink3);font-size:.7rem">⬜ 未繳</span>`;
+    return `<div class="history-item ${isGroup?'group-snap':''}" data-snap="${name}" onclick="viewSnapshot('${name}')">
+      <div>
+        <div class="h-name">${isGroup?'👥 ':''}${displayName}</div>
+        <div class='h-meta'>${isGroup?'團班 '+s._groupName+(monthLabel?' · '+monthLabel:''):monthLabel} ${paidBadge}</div>
+      </div>
+      <div class="history-actions">
+        <button class="btn btn-ghost btn-sm" style="color:var(--ink3);font-size:.8rem"
+          onclick="event.stopPropagation();renameSnapshotByEl(this)" title="改名">✏️</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);font-size:.8rem"
+          onclick="event.stopPropagation();deleteSnapshotByEl(this)" title="刪除">🗑</button>
+      </div>
+    </div>`;
+  };
+
+  const personal=snapshots.filter(s=>s._type!=="group");
+  const groupSnaps=snapshots.filter(s=>s._type==="group");
+
+  let html="";
+  if(personal.length){
+    html+=personal.map(renderItem).join("");
+  }
+  if(groupSnaps.length){
+    html+=`<div style="padding:.5rem .75rem .3rem;font-size:.72rem;color:var(--purple);font-weight:600;border-top:1px solid var(--border);margin-top:.4rem">👥 所屬團班快照</div>`;
+    html+=groupSnaps.map(renderItem).join("");
+  }
+  el.innerHTML=html;
+}
+
+async function saveSnapshot(){
+  const student=document.getElementById("student-select").value;
+  const rawName=document.getElementById("snap-name").value.trim();
+  const months=getSortedMonths();
+  if(!student){alert("請先選擇學生");return;}
+  if(!rawName){alert("請輸入快照名稱");return;}
+  if(!months.length){alert("請先選擇月份");return;}
+  // 自動在前面加學生名，若已經包含則不重複加
+  const name=rawName.startsWith(student+"_")||rawName.startsWith(student+" ")
+    ? rawName
+    : student+"_"+rawName;
+  try{
+    const d=await apiCall({action:"saveSnapshot",name,months:months.join(","),student});
+    alert("✅ 已儲存：「"+name+"」\n月份："+months.map(m=>parseInt(m.split("-")[1])+"月").join("、"));
+    document.getElementById("snap-name").value="";
+    await loadSnapshots();
+  }catch(e){alert("❌ "+e.message);}
+}
+
+// 改快照名稱
+function renameSnapshotByEl(btn){
+  const item=btn.closest(".history-item");
+  if(!item) return;
+  const oldName=item.dataset.snap;
+  const student=document.getElementById("student-select").value;
+
+  // 顯示目前名稱去掉學生前綴
+  const prefix=student+"_";
+  const displayName=oldName.startsWith(prefix)?oldName.slice(prefix.length):oldName;
+
+  const input=prompt("請輸入新的快照名稱：", displayName);
+  if(!input||!input.trim()) return;
+  const rawName=input.trim();
+  // 加回學生前綴（如果原本有的話）
+  const newName=oldName.startsWith(prefix)?student+"_"+rawName:rawName;
+  if(newName===oldName){ alert("名稱相同，無需更改"); return; }
+
+  renameSnapshot(oldName, newName);
+}
+
+async function renameSnapshot(oldName, newName){
+  try{
+    const d=await apiCall({action:"renameSnapshot",oldName,newName});
+    alert(d.message);
+    if(_selectedSnap===oldName) _selectedSnap=newName;
+    await loadSnapshots();
+  }catch(e){ alert("❌ "+e.message); }
+}
+
+// 從按鈕的父元素 .history-item 取 data-snap，避免名稱含特殊字元的問題
+function deleteSnapshotByEl(btn){
+  const item=btn.closest(".history-item");
+  if(!item)return;
+  const name=item.dataset.snap;
+  deleteSnapshot(name);
+}
+
+async function deleteSnapshot(name){
+  if(!name){alert("請先選擇快照");return;}
+  if(!confirm("確定刪除快照「"+name+"」？\n此操作無法復原。"))return;
+  try{
+    const d=await apiCall({action:"deleteSnapshot",name});
+    alert(d.message||"已刪除");
+    if(_selectedSnap===name){
+      _selectedSnap=null;
+      const th=document.getElementById("tab-history");
+      if(th) th.innerHTML=`<div class="empty-state"><div class="icon">📁</div><p>快照已刪除</p></div>`;
+    }
+    await loadSnapshots();
+  }catch(e){alert("❌ "+e.message);}
+}
+
+// ── 快照名稱快速標籤 ──
+function getPresets(){
+  try{return JSON.parse(localStorage.getItem(PRESET_KEY)||"[]");}catch{return[];}
+}
+function savePresets(arr){localStorage.setItem(PRESET_KEY,JSON.stringify(arr));}
+
+function renderPresets(){
+  const presets=getPresets();
+  const el=document.getElementById("preset-tags");
+  if(!presets.length){
+    el.innerHTML=`<span style="font-size:.73rem;color:var(--ink3)">尚無常用名稱</span>`;
+    return;
+  }
+  el.innerHTML=presets.map((p,i)=>`
+    <span class="preset-tag" onclick="applyPreset('${p}')">
+      ${p}
+      <span class="del" onclick="event.stopPropagation();removePreset(${i})">✕</span>
+    </span>`).join("");
+}
+
+function applyPreset(name){
+  document.getElementById("snap-name").value=name;
+}
+
+function addPreset(){
+  const inp=document.getElementById("preset-input");
+  const val=inp.value.trim();
+  if(!val)return;
+  const presets=getPresets();
+  if(presets.includes(val)){inp.value="";return;}
+  if(presets.length>=12){alert("最多儲存 12 個常用名稱");return;}
+  presets.push(val);
+  savePresets(presets);
+  renderPresets();
+  inp.value="";
+}
+
+function removePreset(idx){
+  const presets=getPresets();
+  presets.splice(idx,1);
+  savePresets(presets);
+  renderPresets();
+}
+
+// 預設常用名稱（第一次使用自動填入）
+(function initDefaultPresets(){
+  if(localStorage.getItem(PRESET_KEY)===null){
+    const defaults=["上學期","下學期","暑期班","寒期班"];
+    savePresets(defaults);
+  }
+})();
+
+// ── 分頁 ──
+function ensureHistoryTab(){
+  if(!document.querySelector('[data-tab="history"]')){
+    const t=document.createElement("div");
+    t.className="tab";t.dataset.tab="history";t.textContent="📁 快照預覽";
+    t.onclick=()=>switchTab("history",t);
+    document.getElementById("tab-bar").appendChild(t);
+  }
+}
+function switchTab(name,el){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  if(el)el.classList.add("active");
+  ["bill","refund","history","group"].forEach(id=>{
+    const el=document.getElementById("tab-"+id);
+    if(el)el.style.display=id===name?"block":"none";
+  });
+}
+
+// ── 同步 ──
+function setDefaultSyncDates(){
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1;
+  const prev=m===1?12:m-1,prevY=m===1?y-1:y;
+  document.getElementById("sync-start").value=`${prevY}-${String(prev).padStart(2,"0")}-01`;
+  document.getElementById("sync-end").value=`${y}-${String(m).padStart(2,"0")}-${new Date(y,m,0).getDate()}`;
+}
+async function syncCalendar(){
+  const start=document.getElementById("sync-start").value;
+  const end=document.getElementById("sync-end").value;
+  const overwrite=document.getElementById("sync-overwrite").checked;
+  const btn=document.getElementById("sync-btn");
+  if(!start||!end){alert("請選擇日期範圍");return;}
+  if(overwrite&&!confirm("覆蓋模式會先刪除 "+start+" 到 "+end+" 的所有課程記錄，再重新從日曆抓取。\n確定繼續？"))return;
+  btn.disabled=true;btn.textContent=overwrite?"覆蓋同步中…":"同步中…";
+  document.getElementById("sync-result").innerHTML="";
+  try{
+    const d=await apiCall({action:"syncCalendar",start,end,overwrite:overwrite?"1":""});
+    document.getElementById("sync-result").innerHTML=`<div class="alert alert-ok">✓ ${d.message}</div>`;
+    // 覆蓋完後自動取消勾選
+    if(overwrite) document.getElementById("sync-overwrite").checked=false;
+    await loadStudents();
+  }catch(e){document.getElementById("sync-result").innerHTML=`<div class="alert alert-err">✗ ${e.message}</div>`;}
+  finally{btn.disabled=false;btn.textContent="同步日曆";}
+}
+
+// ── 匯出 ──
+function prepareNoteDisplay(){
+  // 備註欄：textarea → 純文字
+  document.querySelectorAll("[id^='ta_']").forEach(ta=>{
+    const key=ta.id.replace("ta_","");
+    const dp=document.getElementById("dp_"+key);
+    if(dp){dp.textContent=ta.value;dp.classList.toggle("has-note",!!ta.value.trim());}
+  });
+  // 隱藏原始學費（print-hide），只讓家長看到修改後的金額
+  document.querySelectorAll(".print-hide").forEach(el=>{ el._origDisplay=el.style.display; el.style.display="none"; });
+  // 隱藏教材明細（管理用）
+  document.querySelectorAll(".material-hide").forEach(el=>{ el._origDisplay=el.style.display; el.style.display="none"; });
+
+  // 費用編輯欄：隱藏 .bill-edit-row，改在費用區旁顯示純文字
+  document.querySelectorAll(".bill-edit-row").forEach(row=>{
+    const feeKey=row.id.replace("edit_","");
+    const tuInp=document.getElementById("inp_tuition_"+feeKey);
+    const matInp=document.getElementById("inp_mat_"+feeKey);
+    const totalEl=document.getElementById("total_"+feeKey);
+    const tuition=parseInt(tuInp?tuInp.value:0)||0;
+    const material=parseInt(matInp?matInp.value:0)||0;
+    // 合計 = 學費 + 教材費（教材費外加）
+    if(totalEl) totalEl.textContent=(tuition+material).toLocaleString()+" 元";
+    // 更新費用區的「學費」「教材費」顯示（同步編輯後的值）
+    const tuDisp=document.getElementById("fee_tuition_disp_"+feeKey);
+    if(tuDisp) tuDisp.innerHTML=`學費 <span>${tuition.toLocaleString()} 元</span>`;
+    const matDisp=document.getElementById("fee_mat_disp_"+feeKey);
+    if(matDisp){
+      matDisp.innerHTML=`教材費 <span>${material.toLocaleString()} 元</span>`;
+      matDisp.style.display=material>0?"":"none"; // 有教材費才顯示
+    }
+    // 隱藏編輯列
+    row.style.display="none";
+  });
+  // 隱藏快照 bar
+  ["cal-snap-bar","manual-snap-bar"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display="none";
+  });
+}
+
+function restoreEditDisplay(){
+  document.querySelectorAll(".bill-edit-row").forEach(row=>{ row.style.display=""; });
+  ["cal-snap-bar","manual-snap-bar"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display="";
+  });
+  // 還原 print-hide 元素
+  document.querySelectorAll(".print-hide").forEach(el=>{
+    el.style.display=el._origDisplay!==undefined?el._origDisplay:"";
+    delete el._origDisplay;
+  });
+  // 還原教材明細
+  document.querySelectorAll(".material-hide").forEach(el=>{
+    el.style.display=el._origDisplay!==undefined?el._origDisplay:"";
+    delete el._origDisplay;
+  });
+}
+// 取得當前可見分頁的 print-area（個人單或團班單）
+function getVisiblePrintArea(){
+  // 找所有 print-area，回傳在可見分頁內的那個
+  const areas=document.querySelectorAll(".bill-print-area-cls");
+  for(const a of areas){
+    let el=a, visible=true;
+    while(el&&el!==document.body){
+      if(el.style&&el.style.display==="none"){ visible=false; break; }
+      el=el.parentElement;
+    }
+    if(visible) return a;
+  }
+  return areas[0]||document.getElementById("bill-print-area");
+}
+
+async function exportPNG(){
+  const area=getVisiblePrintArea();
+  if(!area){alert("請先產生學費單");return;}
+  const btn=event.target;btn.textContent="產生中…";btn.disabled=true;
+  prepareNoteDisplay();
+  await new Promise(r=>setTimeout(r,60));
+  try{
+    const wrapper=document.createElement("div");
+    wrapper.style.cssText="position:fixed;left:-9999px;top:0;background:white;padding:24px;width:680px;font-family:'Noto Sans TC',sans-serif;";
+    const clone=area.cloneNode(true);
+    clone.querySelectorAll(".note-textarea,.note-save-row").forEach(el=>el.remove());
+    clone.querySelectorAll(".note-display").forEach(el=>{el.style.display=el.classList.contains("has-note")?"block":"none";});
+    // 隱藏 print-hide 元素（原始學費、應收合計 badge 等）
+    clone.querySelectorAll(".print-hide").forEach(el=>el.style.display="none");
+    // 隱藏匯出時不需要的元素
+    clone.querySelectorAll(".bill-edit-row,#cal-snap-bar,#manual-snap-bar,.export-hide,#history-toolbar,.material-hide").forEach(el=>el.style.display="none");
+    clone.style.position="relative";
+    wrapper.appendChild(clone);document.body.appendChild(wrapper);
+    const canvas=await html2canvas(wrapper,{scale:2,useCORS:true,backgroundColor:"#ffffff",width:680,windowWidth:680});
+    document.body.removeChild(wrapper);
+    const imgData=canvas.toDataURL("image/png");
+    const student=document.getElementById("student-select").value||"學費單";
+    const win=window.open("","_blank");
+    if(!win){alert("請允許彈出視窗");return;}
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${student}_學費單</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>*{box-sizing:border-box;margin:0;padding:0;}body{background:#f0f0f0;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:16px;gap:12px;}.tb{display:flex;gap:8px;padding:10px 16px;background:white;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.12);width:100%;max-width:720px;align-items:center;justify-content:space-between;}.tb span{font-size:13px;color:#555;font-family:sans-serif;}.tb a{padding:7px 16px;background:#1a1814;color:white;border-radius:6px;text-decoration:none;font-size:13px;font-family:sans-serif;}img{max-width:100%;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.15);}p{font-size:12px;color:#888;font-family:sans-serif;text-align:center;}</style></head>
+<body><div class="tb"><span>📱 手機長按圖片儲存</span><a href="${imgData}" download="${student}_學費單.png">⬇ 下載</a></div>
+<img src="${imgData}" alt="${student}"><p>電腦可右鍵→另存圖片，或點下載</p></body></html>`);
+    win.document.close();
+  }catch(e){alert("圖片失敗："+e.message);}
+  finally{btn.textContent="🖼 圖片";btn.disabled=false;restoreEditDisplay();}
+}
+async function exportPDF(){
+  const area=getVisiblePrintArea();
+  if(!area){alert("請先產生學費單");return;}
+  const student=document.getElementById("student-select").value||"學費單";
+  const btn=event.target;btn.textContent="產生中…";btn.disabled=true;
+  prepareNoteDisplay();
+  await new Promise(r=>setTimeout(r,60));
+  try{
+    const canvas=await html2canvas(area,{scale:2,useCORS:true,backgroundColor:"#ffffff"});
+    const{jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+    const W=pdf.internal.pageSize.getWidth(),H=pdf.internal.pageSize.getHeight();
+    const imgH=(canvas.height*W)/canvas.width;
+    let y=0;
+    while(y<imgH){if(y>0)pdf.addPage();pdf.addImage(canvas.toDataURL("image/png"),"PNG",0,-y,W,imgH);y+=H;}
+    pdf.save(`${student}_學費單.pdf`);
+  }catch(e){alert("PDF 失敗："+e.message);}
+  finally{btn.textContent="⬇ PDF";btn.disabled=false;restoreEditDisplay();}
+}
+
+// ════════════════════════════════════════════════════════
+// 薪資模組 JS
+// ════════════════════════════════════════════════════════
+let _salaryYear = new Date().getFullYear();
+let _salaryMonths = new Set();
+let _salaryData = null;
+
+// ── 頁面切換 ──
+function switchPage(page){
+  const billPage  = document.querySelector(".app");
+  const salaryPage = document.getElementById("salary-page");
+  const navBill   = document.getElementById("nav-bill");
+  const navSalary = document.getElementById("nav-salary");
+
+  if(page === "salary"){
+    billPage.style.display   = "none";
+    salaryPage.style.display = "block";
+    navBill.style.background   = "transparent";
+    navBill.style.color        = "rgba(255,255,255,.6)";
+    navSalary.style.background = "rgba(255,255,255,.15)";
+    navSalary.style.color      = "var(--paper)";
+    if(!document.getElementById("teacher-select").options.length || document.getElementById("teacher-select").options[0].value===""){
+      loadTeachers();
+    }
+    renderSalaryMonthGrid();
+  } else {
+    billPage.style.display   = "grid";
+    salaryPage.style.display = "none";
+    navBill.style.background   = "rgba(255,255,255,.15)";
+    navBill.style.color        = "var(--paper)";
+    navSalary.style.background = "transparent";
+    navSalary.style.color      = "rgba(255,255,255,.6)";
+  }
+}
+
+// ── 老師 ──
+async function loadTeachers(){
+  try{
+    const d = await apiCall({action:"getTeachers"});
+    window._teachers = d.teachers||[];
+    const sel = document.getElementById("teacher-select");
+    sel.innerHTML = '<option value="">— 請選擇 —</option>';
+    window._teachers.forEach(t=>{
+      const o=document.createElement("option");
+      o.value=t.name; o.textContent=t.name; sel.appendChild(o);
+    });
+  }catch(e){ console.error(e); }
+}
+
+function onTeacherChange(){
+  const name = document.getElementById("teacher-select").value;
+  const t = (window._teachers||[]).find(t=>t.name===name);
+  const tags = document.getElementById("teacher-rate-tags");
+  if(!t||!t.rates||!t.rates.length){ tags.innerHTML=""; return; }
+  // 顯示各學生費率
+  const byRate = {};
+  t.rates.forEach(r=>{ if(!byRate[r.ratePerHr]) byRate[r.ratePerHr]=[]; byRate[r.ratePerHr].push(`${r.student}/${r.subject}`); });
+  tags.innerHTML = Object.entries(byRate).map(([rate,list])=>
+    `<span style="padding:.18rem .55rem;border:1px solid var(--border);border-radius:20px;font-size:.73rem;color:var(--ink2)">
+      ${rate}元/hr：${list.slice(0,3).join("、")}${list.length>3?"…":""}
+    </span>`
+  ).join("");
+}
+
+// ── 月份 ──
+function renderSalaryMonthGrid(){
+  document.getElementById("salary-year-label").textContent = _salaryYear+" 年";
+  const g = document.getElementById("salary-month-grid"); g.innerHTML="";
+  for(let m=1;m<=12;m++){
+    const ym=`${_salaryYear}-${String(m).padStart(2,"0")}`;
+    const c=document.createElement("div");
+    c.className="month-chip"+(_salaryMonths.has(ym)?" active":"");
+    c.dataset.ym=ym; c.textContent=m+"月";
+    c.onclick=()=>{ _salaryMonths.has(ym)?_salaryMonths.delete(ym):_salaryMonths.add(ym); c.classList.toggle("active"); updateSalaryMonthHint(); };
+    g.appendChild(c);
+  }
+}
+function changeSalaryYear(d){ _salaryYear+=d; renderSalaryMonthGrid(); }
+function getSalaryMonths(){ return [..._salaryMonths].sort(); }
+function clearSalaryMonths(){ _salaryMonths.clear(); document.querySelectorAll("#salary-month-grid .month-chip").forEach(c=>c.classList.remove("active")); updateSalaryMonthHint(); }
+function updateSalaryMonthHint(){
+  const ms=getSalaryMonths();
+  document.getElementById("salary-month-hint").textContent = ms.length
+    ?"已選："+ms.map(m=>{const[y,mo]=m.split("-");return y+"/"+parseInt(mo)+"月";}).join("、"):"未選擇月份";
+}
+function setSalaryRange(type){
+  _salaryMonths.clear();
+  const y=new Date().getFullYear();
+  const add={upper:[`${y}-09`,`${y}-10`,`${y}-11`,`${y}-12`,`${y+1}-01`],lower:[`${y}-02`,`${y}-03`,`${y}-04`,`${y}-05`,`${y}-06`],summer:[`${y}-07`,`${y}-08`],winter:[`${y}-01`,`${y}-02`]}[type]||[];
+  add.forEach(ym=>_salaryMonths.add(ym));
+  if(add.length) _salaryYear=parseInt(add[0].split("-")[0]);
+  renderSalaryMonthGrid(); updateSalaryMonthHint();
+}
+
+// ── 產生薪資單 ──
+async function generateSalary(){
+  const teacher = document.getElementById("teacher-select").value;
+  const months  = getSalaryMonths();
+  if(!teacher){ showSalaryMsg("請先選擇老師"); return; }
+  if(!months.length){ showSalaryMsg("請選擇月份"); return; }
+
+  document.getElementById("salary-tab-summary").innerHTML=`<div class="loading">計算中<span class="spinner"></span></div>`;
+  document.getElementById("salary-tab-detail").innerHTML=`<div class="loading">計算中<span class="spinner"></span></div>`;
+
+  try{
+    const data = await apiCall({action:"getSalary", teacher, months:months.join(",")});
+    _salaryData = data;
+    renderSalarySummary(data);
+    renderSalaryDetail(data);
+  }catch(e){
+    showSalaryMsg("❌ "+e.message);
+  }
+}
+
+// ── 薪資總覽 ──
+function renderSalarySummary(data){
+  const area = document.getElementById("salary-tab-summary");
+  if(!data.items||!data.items.length){
+    area.innerHTML=`<div class="empty-state"><div class="icon">🔍</div><p>找不到課程記錄<br><small>確認試算表 F/G 欄已填入老師資料</small></p></div>`; return;
+  }
+  const months = data.months||[];
+  let html = `<div id="salary-print-area" class="watermark-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-family:var(--serif);font-size:1.15rem;font-weight:700">${data.teacher}</div>
+        <div style="font-size:.77rem;color:var(--ink3);margin-top:.1rem">
+          ${months.map(m=>{const[y,mo]=m.split("-");return y+"年"+parseInt(mo)+"月";}).join("、")} 薪資總覽
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:.73rem;color:var(--ink3)">應領薪資</div>
+        <div style="font-family:var(--serif);font-size:1.4rem;font-weight:700">${data.totalSalary.toLocaleString()} <span style="font-size:.8rem;font-weight:400">元</span></div>
+      </div>
+    </div>`;
+
+  // 依科目分組顯示
+  const bySubject = {};
+  data.items.forEach(item=>{
+    if(!bySubject[item.subject]) bySubject[item.subject]={subject:item.subject,items:[],totalHours:0,totalSalary:0};
+    bySubject[item.subject].items.push(item);
+    bySubject[item.subject].totalHours += item.totalHours;
+    bySubject[item.subject].totalSalary += item.salary;
+  });
+
+  Object.values(bySubject).forEach(sg=>{
+    html+=`<div class="salary-card">
+      <div class="salary-card-head">
+        <div class="sc-name">${sg.subject}</div>
+        <div class="sc-badge">${sg.totalSalary.toLocaleString()} 元</div>
+      </div>
+      <div class="salary-summary-grid">`;
+    sg.items.forEach(item=>{
+      html+=`<div class="salary-summary-item">
+        <div class="salary-summary-label">${item.student}</div>
+        <div class="salary-summary-value">${item.totalHours.toFixed(1)} hr</div>
+        <div class="salary-summary-sub">${item.ratePerHr}元/hr → ${item.salary.toLocaleString()}元</div>
+      </div>`;
+    });
+    html+=`</div>
+      <div class="salary-total-block">
+        <span style="font-size:.79rem;color:var(--ink2)">${sg.subject} 合計 ${sg.totalHours.toFixed(1)} hr</span>
+        <span style="font-family:var(--serif);font-size:1.05rem;font-weight:700;border-left:1px solid var(--border);padding-left:.7rem">${sg.totalSalary.toLocaleString()} 元</span>
+      </div>
+    </div>`;
+  });
+
+  html+=`<div class="bill-signature">YuanShih 源石學館</div></div>`;
+  area.innerHTML = html;
+}
+
+// ── 薪資明細 ──
+function renderSalaryDetail(data){
+  const area = document.getElementById("salary-tab-detail");
+  if(!data.items||!data.items.length){ area.innerHTML=`<div class="empty-state"><div class="icon">🔍</div><p>找不到記錄</p></div>`; return; }
+  const months = data.months||[];
+  let html = `<div id="salary-detail-print-area" class="watermark-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-family:var(--serif);font-size:1.15rem;font-weight:700">${data.teacher}</div>
+        <div style="font-size:.77rem;color:var(--ink3);margin-top:.1rem">
+          ${months.map(m=>{const[y,mo]=m.split("-");return y+"年"+parseInt(mo)+"月";}).join("、")} 薪資明細
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:.73rem;color:var(--ink3)">應領薪資</div>
+        <div style="font-family:var(--serif);font-size:1.4rem;font-weight:700">${data.totalSalary.toLocaleString()} <span style="font-size:.8rem;font-weight:400">元</span></div>
+      </div>
+    </div>`;
+
+  data.items.forEach(item=>{
+    let rows = months.map(m=>{
+      const mr = item.monthRows.find(r=>r.month===m)||{count:0,hours:0,lessons:[]};
+      const[y,mo]=m.split("-");
+      const dates=(mr.lessons||[]).map(l=>{
+      const d=new Date(l.date+"T00:00:00");
+      const hrs=parseFloat(l.hours)||0;
+      return`${d.getMonth()+1}/${d.getDate()}(${l.weekday||""})${hrs%1===0?hrs.toFixed(0):hrs}h`;
+    }).join("　");
+      return`<tr><td style="white-space:nowrap">${y}/${parseInt(mo)}月</td><td class="num">${mr.count}</td><td><span style="font-size:.78rem;color:var(--ink2)">${dates}</span></td><td class="num" style="white-space:nowrap">${mr.hours.toFixed(2)}</td></tr>`;
+    }).join("");
+    rows+=`<tr class="sub-total"><td colspan="3" style="text-align:right;font-size:.78rem">合計時數</td><td class="num" style="white-space:nowrap">${item.totalHours.toFixed(2)} hr</td></tr>`;
+
+    html+=`<div class="salary-card">
+      <div class="salary-card-head">
+        <div class="sc-name">${item.student}　<span style="font-size:.85rem;opacity:.8">${item.subject}</span></div>
+        <div class="sc-badge">${item.salary.toLocaleString()} 元</div>
+      </div>
+      <table class="salary-detail-table">
+        <thead><tr>
+          <th style="width:80px">月份</th>
+          <th style="width:44px;text-align:right">堂數</th>
+          <th>上課日期</th>
+          <th style="width:65px;text-align:right">時數</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="salary-total-block">
+        <div class="fee-item">費率 <span>${item.ratePerHr.toLocaleString()} 元/hr</span></div>
+        <div class="fee-total">${item.salary.toLocaleString()} 元</div>
+      </div>
+    </div>`;
+  });
+
+  html+=`<div class="bill-signature">YuanShih 源石學館</div></div>`;
+  area.innerHTML = html;
+}
+
+// ── 薪資單輸出 ──
+function printSalary(){ window.print(); }
+
+async function exportSalaryPNG(){
+  const activeTab = document.querySelector("#salary-page .tab.active");
+  const isSummary = activeTab && activeTab.textContent.includes("總覽");
+  const areaId = isSummary ? "salary-print-area" : "salary-detail-print-area";
+  const area = document.getElementById(areaId);
+  if(!area){ alert("請先產生薪資單"); return; }
+
+  const teacher = document.getElementById("teacher-select").value||"薪資單";
+  const btn = event.target; btn.textContent="產生中…"; btn.disabled=true;
+  try{
+    const wrapper=document.createElement("div");
+    wrapper.style.cssText="position:fixed;left:-9999px;top:0;background:white;padding:24px;width:700px;font-family:'Noto Sans TC',sans-serif;";
+    wrapper.appendChild(area.cloneNode(true));
+    document.body.appendChild(wrapper);
+    const canvas=await html2canvas(wrapper,{scale:2,useCORS:true,backgroundColor:"#ffffff",width:700,windowWidth:700});
+    document.body.removeChild(wrapper);
+    const imgData=canvas.toDataURL("image/png");
+    const win=window.open("","_blank");
+    if(!win){ alert("請允許彈出視窗"); return; }
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${teacher}_薪資單</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>*{box-sizing:border-box;margin:0;padding:0;}body{background:#f0f0f0;display:flex;flex-direction:column;align-items:center;padding:16px;gap:12px;}.tb{display:flex;gap:8px;padding:10px 16px;background:white;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.12);width:100%;max-width:740px;align-items:center;justify-content:space-between;}.tb span{font-size:13px;color:#555;font-family:sans-serif;}.tb a{padding:7px 16px;background:#1a4a7a;color:white;border-radius:6px;text-decoration:none;font-size:13px;font-family:sans-serif;}img{max-width:100%;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.15);}p{font-size:12px;color:#888;font-family:sans-serif;text-align:center;}</style></head>
+<body><div class="tb"><span>📱 手機長按圖片儲存</span><a href="${imgData}" download="${teacher}_薪資單.png">⬇ 下載</a></div>
+<img src="${imgData}"><p>電腦可右鍵→另存圖片，或點下載</p></body></html>`);
+    win.document.close();
+  }catch(e){ alert("圖片失敗："+e.message); }
+  finally{ btn.textContent="🖼 圖片"; btn.disabled=false; }
+}
+
+function switchSalaryTab(name, el){
+  document.querySelectorAll("#salary-page .tab").forEach(t=>t.classList.remove("active"));
+  if(el) el.classList.add("active");
+  document.getElementById("salary-tab-summary").style.display = name==="summary"?"block":"none";
+  document.getElementById("salary-tab-detail").style.display  = name==="detail"?"block":"none";
+}
+
+function showSalaryMsg(msg){
+  document.getElementById("salary-tab-summary").innerHTML=`<div class="alert alert-warn" style="margin:1.25rem">${msg}</div>`;
+  document.getElementById("salary-tab-detail").innerHTML=`<div class="alert alert-warn" style="margin:1.25rem">${msg}</div>`;
+}
+
+async function deduplicateLessons(){
+  const btn=document.getElementById("dedup-btn");
+  const result=document.getElementById("dedup-result");
+  if(!confirm("確定要掃描並刪除重複的課程記錄？\n此操作無法復原，建議先備份試算表。")) return;
+  btn.disabled=true; btn.textContent="處理中…";
+  result.innerHTML="";
+  try{
+    const d=await apiCall({action:"deduplicateLessons"});
+    result.innerHTML=`<div class="alert alert-ok">✓ ${d.message}</div>`;
+  }catch(e){
+    result.innerHTML=`<div class="alert alert-err">✗ ${e.message}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent="執行去重複";
+  }
+}
+
+function showMsg(id,type,msg){
+  const m={warn:"alert-warn",ok:"alert-ok",err:"alert-err"};
+  const el=document.getElementById(id);
+  if(el)el.innerHTML=`<div class="alert ${m[type]}" style="margin:1.25rem">${msg}</div>`;
+}
+</script>
+<!-- 薪資頁面 -->
+<div id="salary-page" style="display:none;max-width:1060px;margin:0 auto;padding:1.5rem;display:none">
+  <div style="display:grid;grid-template-columns:285px 1fr;gap:1.25rem;align-items:start" id="salary-grid">
+
+    <!-- 左側控制 -->
+    <aside id="salary-aside">
+
+      <!-- 老師選擇 -->
+      <div class="panel">
+        <div class="panel-head"><h2>👨‍🏫 老師</h2></div>
+        <div class="panel-body">
+          <div class="field">
+            <label>選擇老師</label>
+            <select id="teacher-select" onchange="onTeacherChange()">
+              <option value="">— 請先連線 —</option>
+            </select>
+          </div>
+          <div id="teacher-rate-tags" style="display:flex;flex-wrap:wrap;gap:.3rem"></div>
+        </div>
+      </div>
+
+      <!-- 月份 -->
+      <div class="panel">
+        <div class="panel-head"><h2>📅 月份範圍</h2></div>
+        <div class="panel-body">
+          <div class="range-btns">
+            <button class="range-btn" onclick="setSalaryRange('upper')">上學期</button>
+            <button class="range-btn" onclick="setSalaryRange('lower')">下學期</button>
+            <button class="range-btn" onclick="setSalaryRange('summer')">暑假</button>
+            <button class="range-btn" onclick="setSalaryRange('winter')">寒假</button>
+            <button class="range-btn" onclick="clearSalaryMonths()">清除</button>
+          </div>
+          <div class="year-row">
+            <button class="year-btn" onclick="changeSalaryYear(-1)">‹</button>
+            <span id="salary-year-label"></span>
+            <button class="year-btn" onclick="changeSalaryYear(1)">›</button>
+          </div>
+          <div class="month-grid" id="salary-month-grid"></div>
+          <div style="font-size:.72rem;color:var(--ink3);margin-top:.45rem" id="salary-month-hint">未選擇月份</div>
+        </div>
+      </div>
+
+      <!-- 產生薪資單 -->
+      <div class="panel">
+        <div class="panel-head"><h2>💴 產生薪資單</h2></div>
+        <div class="panel-body">
+          <button class="btn btn-primary" onclick="generateSalary()">產生薪資單</button>
+          <div class="btn-row">
+            <button class="btn btn-outline btn-sm" onclick="printSalary()">🖨 列印</button>
+            <button class="btn btn-outline btn-sm" onclick="exportSalaryPNG()">🖼 圖片</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 試算表設定提示 -->
+      <div class="panel">
+        <div class="panel-head"><h2>⚙ 試算表設定</h2></div>
+        <div class="panel-body">
+          <div class="tip-box" style="margin-top:0;background:var(--blue-lt);border-color:rgba(26,74,122,.2);color:var(--blue)">
+            <b>「學生資料」分頁格式：</b><br>
+            A：學生姓名<br>
+            B：科目<br>
+            C：學生費率<br>
+            D：教材費<br>
+            E：備註<br>
+            <b>F：老師姓名 ← 新增</b><br>
+            <b>G：老師時薪 ← 新增</b>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- 右側薪資單 -->
+    <main>
+      <div class="panel" style="margin-bottom:0">
+        <div class="tab-bar">
+          <div class="tab active" onclick="switchSalaryTab('summary',this)">總覽</div>
+          <div class="tab" onclick="switchSalaryTab('detail',this)">明細</div>
+        </div>
+        <div id="salary-tab-summary" class="bill-area">
+          <div class="empty-state"><div class="icon">💴</div><p>選擇老師與月份<br>點「產生薪資單」</p></div>
+        </div>
+        <div id="salary-tab-detail" class="bill-area" style="display:none">
+          <div class="empty-state"><div class="icon">📋</div><p>選擇老師與月份<br>點「產生薪資單」</p></div>
+        </div>
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<!-- 手動開學費單 Modal -->
+<div id="manual-modal" class="m-modal">
+<div class="m-box">
+  <div class="m-head">
+    <div class="m-title">✏️ 手動開立學費單</div>
+    <button class="m-close" onclick="closeManualModal()">✕</button>
+  </div>
+
+  <!-- 學生資訊 -->
+  <div id="m-student-info" style="font-size:.82rem;color:var(--ink2);margin-bottom:1rem;padding:.5rem .75rem;background:var(--paper2);border-radius:6px"></div>
+
+  <!-- 科目分頁 -->
+  <div id="m-subject-tabs" style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+
+  <!-- 區間快速產生 -->
+  <div class="m-section">
+    <div class="m-section-title">📅 快速產生課堂</div>
+    <div class="m-range-row">
+      <div><label>開始日期</label><input type="date" id="m-start" class="m-inp"></div>
+      <div><label>結束日期</label><input type="date" id="m-end" class="m-inp"></div>
+    </div>
+    <div style="margin-bottom:.45rem"><label style="font-size:.78rem;font-weight:500;color:var(--ink2);display:block;margin-bottom:.3rem">上課星期</label>
+      <div class="weekday-grid" id="m-weekdays">
+        <div class="weekday-chip" data-day="0" onclick="this.classList.toggle('active')">日</div>
+        <div class="weekday-chip" data-day="1" onclick="this.classList.toggle('active')">一</div>
+        <div class="weekday-chip" data-day="2" onclick="this.classList.toggle('active')">二</div>
+        <div class="weekday-chip" data-day="3" onclick="this.classList.toggle('active')">三</div>
+        <div class="weekday-chip" data-day="4" onclick="this.classList.toggle('active')">四</div>
+        <div class="weekday-chip" data-day="5" onclick="this.classList.toggle('active')">五</div>
+        <div class="weekday-chip" data-day="6" onclick="this.classList.toggle('active')">六</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.55rem;flex-wrap:wrap">
+      <label style="font-size:.78rem;font-weight:500;color:var(--ink2)">每堂時數</label>
+      <input type="number" id="m-default-hours" value="1.5" min="0.5" step="0.5"
+        style="width:70px" class="m-inp">
+      <span style="font-size:.75rem;color:var(--ink3)">hr</span>
+      <button onclick="generateLessonsByRange()" class="btn btn-outline btn-sm">產生課堂列表</button>
+    </div>
+  </div>
+
+  <!-- 課堂列表 -->
+  <div class="m-section">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+      <div class="m-section-title" style="margin-bottom:0">📋 課堂明細</div>
+      <button onclick="addManualLesson()" class="btn btn-outline btn-sm">＋ 新增一堂</button>
+    </div>
+    <div id="m-lesson-area">
+      <div style="text-align:center;padding:1rem;font-size:.8rem;color:var(--ink3)">點「產生課堂列表」或手動新增</div>
+    </div>
+  </div>
+
+  <!-- 費用設定 -->
+  <div class="m-section">
+    <div class="m-section-title">💰 費用設定</div>
+    <div class="m-fee-row">
+      <label>每小時費率</label>
+      <input type="number" id="m-rate" class="m-fee-inp" min="0" step="50" onchange="updateMPreview()">
+      <span style="font-size:.73rem;color:var(--ink3)">元/hr（可手動修改）</span>
+    </div>
+    <div class="m-fee-row">
+      <label>學費小計</label>
+      <input type="number" id="m-tuition" class="m-fee-inp" min="0" step="100"
+        oninput="document.getElementById('m-tuition-manual').checked=true;updateMPreview()">
+      <label style="display:flex;align-items:center;gap:.3rem;min-width:auto;font-weight:400">
+        <input type="checkbox" id="m-tuition-manual" style="width:13px;height:13px">
+        <span style="font-size:.73rem;color:var(--ink3)">手動金額</span>
+      </label>
+    </div>
+    <div class="m-fee-row">
+      <label>教材費</label>
+      <input type="number" id="m-material" class="m-fee-inp" min="0" step="100" onchange="updateMPreview()" value="0">
+      <span style="font-size:.73rem;color:var(--ink3)">元</span>
+    </div>
+  </div>
+
+  <!-- 小計預覽 -->
+  <div class="m-preview" id="m-preview">填入課堂後顯示費用預覽</div>
+
+  <div class="m-footer">
+    <button onclick="closeManualModal()" class="btn btn-outline btn-sm">取消</button>
+    <button onclick="confirmManualBill()" class="btn btn-primary btn-sm" style="background:var(--blue);width:auto">產生學費單</button>
+  </div>
+</div>
+</div>
+
+</body>
+</html>
